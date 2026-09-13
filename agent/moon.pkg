@@ -22,5 +22,4 @@ import {
   "Lfan-ke/moonkoog/persistence",
   "moonbitlang/async",
   "moonbitlang/core/json",
-  "moonbitlang/core/random",
 } for "test"

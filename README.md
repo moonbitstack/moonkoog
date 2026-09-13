@@ -4,7 +4,7 @@
 
 **A MoonBit port of [JetBrains Koog](https://github.com/JetBrains/koog) — a type-safe agent-orchestration framework.**
 
-[![Check and Test](https://github.com/Lfan-ke/moonkoog/actions/workflows/ci.yml/badge.svg)](https://github.com/Lfan-ke/moonkoog/actions/workflows/ci.yml)
+[![Check and Test](https://github.com/moonbitstack/moonkoog/actions/workflows/ci.yml/badge.svg)](https://github.com/moonbitstack/moonkoog/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 
 </div>
@@ -15,12 +15,12 @@ tool-calling loop. moonkoog transcribes it to MoonBit feature by feature, anchor
 to Koog's `1.1.1` release. Where Kotlin leans on reflection (deriving a tool's
 JSON schema from its argument type via `kotlinx.serialization` + a `TypeToken`),
 MoonBit has none, so a tool states its schema through an explicit descriptor — the
-same approach [moonapi](https://github.com/Lfan-ke/moonapi) and
-[moonctl](https://github.com/Lfan-ke/moonctl) take. It is part of the **moon-heke**
+same approach [moonapi](https://github.com/moonbitstack/moonapi) and
+[moonctl](https://github.com/moonbitstack/moonctl) take. It is part of the **moon-heke**
 full-stack suite and composes with it: an agent serves over
-[moonapi](https://github.com/Lfan-ke/moonapi)/[mooncat](https://github.com/Lfan-ke/mooncat),
+[moonapi](https://github.com/moonbitstack/moonapi)/[mooncat](https://github.com/moonbitstack/mooncat),
 streams tokens over moonasgi SSE, and checkpoints to
-[moonorm](https://github.com/Lfan-ke/moonorm).
+[moonorm](https://github.com/moonbitstack/moonorm).
 
 ## What works today
 

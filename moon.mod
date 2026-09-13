@@ -1,10 +1,10 @@
 name = "Lfan-ke/moonkoog"
 
-version = "0.4.0"
+version = "0.4.1"
 
 readme = "README.md"
 
-repository = "https://github.com/Lfan-ke/moonkoog"
+repository = "https://github.com/moonbitstack/moonkoog"
 
 license = "Apache-2.0"
 
