@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Lfan-ke/moonkoog/a2a"
+package "moonbitstack/moonkoog/a2a"
 
 import {
   "moonbitlang/core/debug",

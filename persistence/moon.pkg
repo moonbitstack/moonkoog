@@ -4,6 +4,6 @@
 // implementation. Transcribed from the koog AgentCheckpointData +
 // PersistenceStorageProvider source. Pure logic, all backends.
 import {
-  "Lfan-ke/moonkoog/prompt",
-  "Lfan-ke/moonkoog/llm",
+  "moonbitstack/moonkoog/prompt",
+  "moonbitstack/moonkoog/llm",
 }

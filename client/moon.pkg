@@ -7,19 +7,19 @@
 supported_targets = "native"
 
 import {
-  "Lfan-ke/moonkoog/prompt",
-  "Lfan-ke/moonkoog/llm",
-  "Lfan-ke/moonkoog/tools",
-  "Lfan-ke/moonkoog/agent",
-  "Lfan-ke/moonkoog/embeddings",
+  "moonbitstack/moonkoog/prompt",
+  "moonbitstack/moonkoog/llm",
+  "moonbitstack/moonkoog/tools",
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonkoog/embeddings",
   "DC-Z-lab/moonllm",
   "moonbitlang/core/json",
 }
 
 import {
-  "Lfan-ke/moonkoog/prompt",
-  "Lfan-ke/moonkoog/llm",
-  "Lfan-ke/moonkoog/agent",
+  "moonbitstack/moonkoog/prompt",
+  "moonbitstack/moonkoog/llm",
+  "moonbitstack/moonkoog/agent",
   "DC-Z-lab/moonllm",
   "moonbitlang/async",
 } for "test"

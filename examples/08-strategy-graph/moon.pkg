@@ -1,10 +1,10 @@
 supported_targets = "native"
 
 import {
-  "Lfan-ke/moonkoog/agent",
-  "Lfan-ke/moonkoog/prompt",
-  "Lfan-ke/moonkoog/llm",
-  "Lfan-ke/moonkoog/tools",
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonkoog/prompt",
+  "moonbitstack/moonkoog/llm",
+  "moonbitstack/moonkoog/tools",
   "moonbitlang/async",
 }
 

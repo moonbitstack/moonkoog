@@ -6,20 +6,20 @@
 supported_targets = "native"
 
 import {
-  "Lfan-ke/moonkoog/prompt",
-  "Lfan-ke/moonkoog/llm",
-  "Lfan-ke/moonkoog/tools",
-  "Lfan-ke/moonkoog/persistence",
+  "moonbitstack/moonkoog/prompt",
+  "moonbitstack/moonkoog/llm",
+  "moonbitstack/moonkoog/tools",
+  "moonbitstack/moonkoog/persistence",
   "moonbitlang/async",
   "moonbitlang/core/json",
   "moonbitlang/core/random",
 }
 
 import {
-  "Lfan-ke/moonkoog/prompt",
-  "Lfan-ke/moonkoog/llm",
-  "Lfan-ke/moonkoog/tools",
-  "Lfan-ke/moonkoog/persistence",
+  "moonbitstack/moonkoog/prompt",
+  "moonbitstack/moonkoog/llm",
+  "moonbitstack/moonkoog/tools",
+  "moonbitstack/moonkoog/persistence",
   "moonbitlang/async",
   "moonbitlang/core/json",
 } for "test"

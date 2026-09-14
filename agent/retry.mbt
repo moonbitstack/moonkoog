@@ -7,7 +7,7 @@
 //
 // Koog reads the message off the exception it caught. MoonBit cannot: an `Error` erases its
 // payload, and `Error::to_string` on a caught suberror yields only the constructor's qualified
-// name — `Lfan-ke/moonkoog/client.LLMError.ApiError`, never the status code inside it. So the
+// name — `moonbitstack/moonkoog/client.LLMError.ApiError`, never the status code inside it. So the
 // message a pattern is matched against comes from a `describe` seam the caller owns, and a
 // client package ships the describer for the errors it raises (`@client.describe_llm_error`).
 

@@ -3,11 +3,11 @@
 supported_targets = "native"
 
 import {
-  "Lfan-ke/moonkoog/embeddings",
+  "moonbitstack/moonkoog/embeddings",
 }
 
 // The async runtime backs the `async test` that drives embed-on-add / embed-on-search.
 import {
-  "Lfan-ke/moonkoog/embeddings",
+  "moonbitstack/moonkoog/embeddings",
   "moonbitlang/async",
 } for "test"

@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Lfan-ke/moonkoog/memory"
+package "moonbitstack/moonkoog/memory"
 
 import {
   "moonbitlang/core/debug",

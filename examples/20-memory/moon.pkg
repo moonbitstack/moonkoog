@@ -1,7 +1,7 @@
 supported_targets = "native"
 
 import {
-  "Lfan-ke/moonkoog/memory",
+  "moonbitstack/moonkoog/memory",
 }
 
 pkgtype(kind: "executable")

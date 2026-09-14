@@ -1,8 +1,8 @@
 supported_targets = "native"
 
 import {
-  "Lfan-ke/moonkoog/mcp",
-  "Lfan-ke/moonkoog/tools",
+  "moonbitstack/moonkoog/mcp",
+  "moonbitstack/moonkoog/tools",
   "moonbitlang/core/json",
 }
 

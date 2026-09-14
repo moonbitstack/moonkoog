@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Lfan-ke/moonkoog/llm"
+package "moonbitstack/moonkoog/llm"
 
 import {
   "moonbitlang/core/debug",

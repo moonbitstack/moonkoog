@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "Lfan-ke/moonkoog/prompt"
+package "moonbitstack/moonkoog/prompt"
 
 import {
   "moonbitlang/core/debug",

@@ -3,10 +3,10 @@
 // moonkoog `Tool`. Pure and synchronous, so every target.
 
 import {
-  "Lfan-ke/moonkoog/tools",
+  "moonbitstack/moonkoog/tools",
 }
 
 import {
-  "Lfan-ke/moonkoog/tools",
+  "moonbitstack/moonkoog/tools",
   "moonbitlang/core/json",
 } for "test"

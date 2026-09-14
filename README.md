@@ -9,6 +9,8 @@
 
 </div>
 
+> Moved on mooncakes from `Lfan-ke/moonkoog` to `moonbitstack/moonkoog`.
+
 Koog is a Kotlin framework for building LLM agents: a prompt/message model, an
 LLM-client contract, a tool registry, and an `AIAgent` that drives the
 tool-calling loop. moonkoog transcribes it to MoonBit feature by feature, anchored

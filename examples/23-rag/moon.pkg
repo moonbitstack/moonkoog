@@ -1,8 +1,8 @@
 supported_targets = "native"
 
 import {
-  "Lfan-ke/moonkoog/rag",
-  "Lfan-ke/moonkoog/embeddings",
+  "moonbitstack/moonkoog/rag",
+  "moonbitstack/moonkoog/embeddings",
   "moonbitlang/async",
 }
 

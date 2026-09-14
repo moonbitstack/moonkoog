@@ -6,10 +6,10 @@ supported_targets = "native"
 pkgtype(kind: "executable")
 
 import {
-  "Lfan-ke/moonkoog/llm",
-  "Lfan-ke/moonkoog/tools",
-  "Lfan-ke/moonkoog/agent",
-  "Lfan-ke/moonkoog/client",
+  "moonbitstack/moonkoog/llm",
+  "moonbitstack/moonkoog/tools",
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonkoog/client",
   "moonbitlang/async",
   "moonbitlang/core/env",
 }

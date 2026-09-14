@@ -1,7 +1,7 @@
 supported_targets = "native"
 
 import {
-  "Lfan-ke/moonkoog/prompt",
+  "moonbitstack/moonkoog/prompt",
 }
 
 pkgtype(kind: "executable")
