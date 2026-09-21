@@ -120,3 +120,12 @@ pub impl LLMClient for MockClient with fn execute_multiple(
   }
   choices
 }
+
+///|
+pub extend MockClient with LLMClient::{
+  execute,
+  provider,
+  execute_streaming,
+  moderate,
+  execute_multiple,
+}

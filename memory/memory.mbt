@@ -159,3 +159,36 @@ pub impl MemoryProvider for InMemoryProvider with fn load_all(
     None => []
   }
 }
+
+///|
+pub extend Concept with Debug::{to_repr}
+
+///|
+pub extend Concept with Eq::{not_equal, equal}
+
+///|
+pub extend Fact with Debug::{to_repr}
+
+///|
+pub extend Fact with Eq::{not_equal, equal}
+
+///|
+pub extend FactType with Debug::{to_repr}
+
+///|
+pub extend FactType with Eq::{not_equal, equal}
+
+///|
+pub extend InMemoryProvider with MemoryProvider::{save, load_all, load}
+
+///|
+pub extend MemoryScope with Debug::{to_repr}
+
+///|
+pub extend MemoryScope with Eq::{not_equal, equal}
+
+///|
+pub extend MemorySubject with Debug::{to_repr}
+
+///|
+pub extend MemorySubject with Eq::{not_equal, equal}

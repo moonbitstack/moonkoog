@@ -25,7 +25,10 @@ pub(all) struct AgentCheckpoint {
   agent_iterations : Int
   version : Int64
 } derive(Eq, @debug.Debug)
-pub fn AgentCheckpoint::new(checkpoint_id~ : String, created_at~ : Int64, node_id~ : String, message_history? : Array[@prompt.Message], llm_params? : @prompt.LLMParams?, llm_model? : @llm.LLModel?, tools? : Array[String]?, storage? : Json, last_input? : Json?, agent_iterations? : Int, version? : Int64) -> Self
+pub fn AgentCheckpoint::equal(Self, Self) -> Bool
+pub fn AgentCheckpoint::new(checkpoint_id~ : String, created_at~ : Int64, node_id~ : String, message_history? : Array[@prompt.Message], llm_params? : @prompt.LLMParams, llm_model? : @llm.LLModel, tools? : Array[String], storage? : Json, last_input? : Json, agent_iterations? : Int, version? : Int64) -> Self
+pub fn AgentCheckpoint::not_equal(Self, Self) -> Bool
+pub fn AgentCheckpoint::to_repr(Self) -> @debug.Repr
 
 pub struct InMemoryPersistence {
   by_session : Map[String, Array[AgentCheckpoint]]

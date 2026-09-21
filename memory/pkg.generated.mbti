@@ -22,22 +22,34 @@ pub(all) struct Concept {
   description : String
   fact_type : FactType
 } derive(Eq, @debug.Debug)
+pub fn Concept::equal(Self, Self) -> Bool
+pub fn Concept::not_equal(Self, Self) -> Bool
+pub fn Concept::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Fact {
   SingleFact(concept~ : Concept, value~ : String, timestamp~ : Int64)
   MultipleFacts(concept~ : Concept, values~ : Array[String], timestamp~ : Int64)
 } derive(Eq, @debug.Debug)
 pub fn Fact::concept(Self) -> Concept
+pub fn Fact::equal(Self, Self) -> Bool
+pub fn Fact::not_equal(Self, Self) -> Bool
+pub fn Fact::to_repr(Self) -> @debug.Repr
 
 pub(all) enum FactType {
   Single
   Multiple
 } derive(Eq, @debug.Debug)
+pub fn FactType::equal(Self, Self) -> Bool
+pub fn FactType::not_equal(Self, Self) -> Bool
+pub fn FactType::to_repr(Self) -> @debug.Repr
 
 pub struct InMemoryProvider {
   store : Map[String, Array[Fact]]
 }
+pub fn InMemoryProvider::load(Self, Concept, MemorySubject, MemoryScope) -> Array[Fact]
+pub fn InMemoryProvider::load_all(Self, MemorySubject, MemoryScope) -> Array[Fact]
 pub fn InMemoryProvider::new() -> Self
+pub fn InMemoryProvider::save(Self, Fact, MemorySubject, MemoryScope) -> Unit
 pub impl MemoryProvider for InMemoryProvider
 
 pub(all) enum MemoryScope {
@@ -46,11 +58,17 @@ pub(all) enum MemoryScope {
   ScopeProduct
   ScopeCrossProduct
 } derive(Eq, @debug.Debug)
+pub fn MemoryScope::equal(Self, Self) -> Bool
+pub fn MemoryScope::not_equal(Self, Self) -> Bool
+pub fn MemoryScope::to_repr(Self) -> @debug.Repr
 
 pub(all) struct MemorySubject {
   name : String
   priority : Int
 } derive(Eq, @debug.Debug)
+pub fn MemorySubject::equal(Self, Self) -> Bool
+pub fn MemorySubject::not_equal(Self, Self) -> Bool
+pub fn MemorySubject::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

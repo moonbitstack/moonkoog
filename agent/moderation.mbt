@@ -31,3 +31,27 @@ pub fn ModerationResult::is_category_detected(
     None => false
   }
 }
+
+///|
+pub extend ModerationCategoryResult with Debug::{to_repr}
+
+///|
+pub extend ModerationCategoryResult with FromJson::{from_json}
+
+///|
+pub extend ModerationCategoryResult with Eq::{not_equal, equal}
+
+///|
+pub extend ModerationCategoryResult with ToJson::{to_json}
+
+///|
+pub extend ModerationResult with Debug::{to_repr}
+
+///|
+pub extend ModerationResult with FromJson::{from_json}
+
+///|
+pub extend ModerationResult with Eq::{not_equal, equal}
+
+///|
+pub extend ModerationResult with ToJson::{to_json}

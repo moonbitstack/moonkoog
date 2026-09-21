@@ -215,7 +215,7 @@ async test "retrying client: an explicit predicate overrides the pattern list" {
       flaky,
       describe=describe_flaky,
       config=steady_config(),
-      retryable=Some(_e => true),
+      retryable=_e => true,
       wait=_ms => (),
     )
     let prompt = @prompt.PromptBuilder::new().user("hi").build()

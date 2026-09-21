@@ -98,3 +98,9 @@ pub fn Vector::euclidean_distance(
   }
   kahan_sum(squares).sqrt()
 }
+
+///|
+pub extend Vector with Debug::{to_repr}
+
+///|
+pub extend Vector with Eq::{not_equal, equal}

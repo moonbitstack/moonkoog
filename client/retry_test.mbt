@@ -46,7 +46,7 @@ impl @agent.LLMClient for AlwaysFailing with fn execute_multiple(
 async test "retrying() wires the describer, so a 503 is actually retried" {
   @async.with_task_group(_g => {
     let inner = AlwaysFailing::{ calls: 0, }
-    let client = retrying(inner, config={
+    let client = @client.retrying(inner, config={
       ..@agent.RetryConfig::default(),
       initial_delay_ms: 1,
       max_delay_ms: 2,

@@ -437,3 +437,51 @@ fn opt_str_array(o : Map[String, Json], key : String) -> Array[String]? {
     _ => None
   }
 }
+
+///|
+pub extend Artifact with Debug::{to_repr}
+
+///|
+pub extend Artifact with Eq::{not_equal, equal}
+
+///|
+pub extend FileContent with Debug::{to_repr}
+
+///|
+pub extend FileContent with Eq::{not_equal, equal}
+
+///|
+pub extend Message with Debug::{to_repr}
+
+///|
+pub extend Message with Eq::{not_equal, equal}
+
+///|
+pub extend Part with Debug::{to_repr}
+
+///|
+pub extend Part with Eq::{not_equal, equal}
+
+///|
+pub extend Role with Debug::{to_repr}
+
+///|
+pub extend Role with Eq::{not_equal, equal}
+
+///|
+pub extend Task with Debug::{to_repr}
+
+///|
+pub extend Task with Eq::{not_equal, equal}
+
+///|
+pub extend TaskState with Debug::{to_repr}
+
+///|
+pub extend TaskState with Eq::{not_equal, equal}
+
+///|
+pub extend TaskStatus with Debug::{to_repr}
+
+///|
+pub extend TaskStatus with Eq::{not_equal, equal}

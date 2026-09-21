@@ -69,3 +69,9 @@ fn feedback_after_colon(reply : String) -> String {
   }
   sb.to_string()
 }
+
+///|
+pub extend CriticVerdict with Debug::{to_repr}
+
+///|
+pub extend CriticVerdict with Eq::{not_equal, equal}

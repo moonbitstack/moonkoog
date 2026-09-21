@@ -372,3 +372,12 @@ fn parse_json(s : String) -> Json {
     _ => Json::object({})
   }
 }
+
+///|
+pub extend OpenAiCompatibleClient with @agent.LLMClient::{
+  execute,
+  provider,
+  execute_streaming,
+  moderate,
+  execute_multiple,
+}

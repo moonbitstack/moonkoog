@@ -122,7 +122,7 @@ async fn main {
       LoopClient::{ },
       model=@llm.deepseek_v4_flash,
       tool_registry=@tools.ToolRegistry::new().add(Add::{ }),
-      system_prompt=Some("you can add integers"),
+      system_prompt="you can add integers",
       events~,
     )
     let answer = agent.run("what is 2 + 3?") catch {

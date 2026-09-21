@@ -172,3 +172,15 @@ fn prompt_digest(prompt : @prompt.Prompt) -> String {
     text
   }
 }
+
+///|
+pub extend LineTrace with TraceWriter::{write}
+
+///|
+pub extend TraceCollector with TraceWriter::{write}
+
+///|
+pub extend TraceEvent with Debug::{to_repr}
+
+///|
+pub extend TraceEvent with Eq::{not_equal, equal}

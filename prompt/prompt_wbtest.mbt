@@ -47,7 +47,7 @@ test "PromptBuilder chains into an ordered message list" {
   let p = PromptBuilder::new(id="t")
     .system("you are a bot")
     .user("hi")
-    .tool_result(tool="search", output="42", id=Some("1"))
+    .tool_result(tool="search", output="42", id="1")
     .build()
   assert_eq(p.messages.length(), 3)
   assert_eq(p.messages[0].role, System)

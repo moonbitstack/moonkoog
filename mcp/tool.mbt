@@ -93,3 +93,6 @@ pub fn mcp_tool_registry(client : McpClient) -> @tools.ToolRegistry raise {
   }
   registry
 }
+
+///|
+pub extend McpTool with @tools.Tool::{descriptor, execute_raw}

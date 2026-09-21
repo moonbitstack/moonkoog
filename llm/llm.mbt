@@ -87,3 +87,21 @@ pub fn LLModel::supports(self : LLModel, capability : LLMCapability) -> Bool {
 
 // The predefined model catalogs live in their per-provider files: `openai_models.mbt`,
 // `anthropic_models.mbt`, `google_models.mbt`, `deepseek_models.mbt`.
+
+///|
+pub extend LLMCapability with Debug::{to_repr}
+
+///|
+pub extend LLMCapability with Eq::{not_equal, equal}
+
+///|
+pub extend LLMProvider with Debug::{to_repr}
+
+///|
+pub extend LLMProvider with Eq::{not_equal, equal}
+
+///|
+pub extend LLModel with Debug::{to_repr}
+
+///|
+pub extend LLModel with Eq::{not_equal, equal}

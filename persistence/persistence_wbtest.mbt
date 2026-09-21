@@ -9,7 +9,7 @@ fn sample_checkpoint(id : String, at : Int64) -> AgentCheckpoint {
       @prompt.Message::user("hello"),
       @prompt.Message::assistant("hi there"),
     ],
-    last_input=Some(Json::string("hello")),
+    last_input=Json::string("hello"),
     agent_iterations=1,
   )
 }

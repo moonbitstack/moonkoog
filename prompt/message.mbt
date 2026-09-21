@@ -88,7 +88,7 @@ pub fn Message::total_tokens(self : Message) -> Int? {
 pub fn Message::tool_result(
   tool~ : String,
   output~ : String,
-  id? : String? = None,
+  id? : String,
   is_error? : Bool = false,
 ) -> Message {
   {
@@ -128,3 +128,51 @@ pub fn Message::tool_calls(self : Message) -> Array[MessagePart] {
   }
   calls
 }
+
+///|
+pub extend Message with Debug::{to_repr}
+
+///|
+pub extend Message with FromJson::{from_json}
+
+///|
+pub extend Message with Eq::{not_equal, equal}
+
+///|
+pub extend Message with ToJson::{to_json}
+
+///|
+pub extend MessagePart with Debug::{to_repr}
+
+///|
+pub extend MessagePart with FromJson::{from_json}
+
+///|
+pub extend MessagePart with Eq::{not_equal, equal}
+
+///|
+pub extend MessagePart with ToJson::{to_json}
+
+///|
+pub extend ResponseMetaInfo with Debug::{to_repr}
+
+///|
+pub extend ResponseMetaInfo with FromJson::{from_json}
+
+///|
+pub extend ResponseMetaInfo with Eq::{not_equal, equal}
+
+///|
+pub extend ResponseMetaInfo with ToJson::{to_json}
+
+///|
+pub extend Role with Debug::{to_repr}
+
+///|
+pub extend Role with FromJson::{from_json}
+
+///|
+pub extend Role with Eq::{not_equal, equal}
+
+///|
+pub extend Role with ToJson::{to_json}

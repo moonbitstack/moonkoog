@@ -145,3 +145,9 @@ fn contains_nul(s : String) -> Bool {
   }
   false
 }
+
+///|
+pub extend SseEvent with Debug::{to_repr}
+
+///|
+pub extend SseEvent with Eq::{not_equal, equal}

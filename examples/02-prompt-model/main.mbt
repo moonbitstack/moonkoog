@@ -12,7 +12,7 @@ fn main {
     .system("You are qwq, a terse assistant.")
     .user("look up the weather in heke1228")
     .assistant("checking now")
-    .tool_result(tool="weather", output="{\"temp_c\": 23}", id=Some("call_233"))
+    .tool_result(tool="weather", output="{\"temp_c\": 23}", id="call_233")
     .build()
   println("id \{prompt.id}, \{prompt.messages.length()} messages")
   for m in prompt.messages {

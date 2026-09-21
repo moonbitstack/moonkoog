@@ -66,11 +66,11 @@ async fn main {
       @prompt.Message::user("what is 2 + 3?"),
       @prompt.Message::assistant("the answer is 5"),
     ],
-    llm_params=Some(@prompt.LLMParams::default()),
-    llm_model=Some(@llm.deepseek_v4_flash),
-    tools=Some(["add"]),
+    llm_params=@prompt.LLMParams::default(),
+    llm_model=@llm.deepseek_v4_flash,
+    tools=["add"],
     storage=snap,
-    last_input=Some(Json::string("the answer is 5")),
+    last_input=Json::string("the answer is 5"),
     agent_iterations=2,
   )
   persistence.save_checkpoint("session-qwq", checkpoint)

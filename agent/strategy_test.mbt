@@ -11,7 +11,7 @@ async test "run_strategy with single_run_strategy runs the full tool loop" {
       LoopClient::{ },
       model=@llm.deepseek_v4_flash,
       tool_registry=registry,
-      system_prompt=Some("you can add"),
+      system_prompt="you can add",
     )
     let out = agent.run_strategy(@agent.single_run_strategy(), "what is 2+3?") catch {
       e => fail(e.to_string())

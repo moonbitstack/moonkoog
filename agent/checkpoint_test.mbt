@@ -239,7 +239,7 @@ async test "checkpointing: resuming replays the conversation and the spent itera
     let agent = @agent.AIAgent::new(
       client,
       model=@llm.deepseek_v4_flash,
-      system_prompt=Some("be brief"),
+      system_prompt="be brief",
       max_iterations=2,
     )
     let strategy = @agent.AIAgentStrategy::new("two_calls")
@@ -306,7 +306,7 @@ async test "checkpointing: a resume past the iteration budget is refused" {
       created_at=0L,
       node_id="call",
       message_history=[@prompt.Message::user("hi")],
-      last_input=Some(@agent.VText("hi").to_json()),
+      last_input=@agent.VText("hi").to_json(),
       agent_iterations=2,
     )
     let message = try {
@@ -397,14 +397,10 @@ async test "checkpointing: a supplied clock stamps the snapshots" {
     let _ = agent.run_strategy(
       counting_strategy(fail_at=99, visits=[]),
       "go",
-      checkpoints=@agent.Checkpointer::new(
-        store,
-        session="s1",
-        clock=Some(() => {
-          tick = tick + 10L
-          tick
-        }),
-      ),
+      checkpoints=@agent.Checkpointer::new(store, session="s1", clock=() => {
+        tick = tick + 10L
+        tick
+      }),
     ) catch {
       e => fail(e.to_string())
     }

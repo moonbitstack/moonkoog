@@ -317,3 +317,39 @@ fn opt_bool(o : Map[String, Json], key : String) -> Bool? {
     _ => None
   }
 }
+
+///|
+pub extend AgentCapabilities with Debug::{to_repr}
+
+///|
+pub extend AgentCapabilities with Eq::{not_equal, equal}
+
+///|
+pub extend AgentCard with Debug::{to_repr}
+
+///|
+pub extend AgentCard with Eq::{not_equal, equal}
+
+///|
+pub extend AgentExtension with Debug::{to_repr}
+
+///|
+pub extend AgentExtension with Eq::{not_equal, equal}
+
+///|
+pub extend AgentInterface with Debug::{to_repr}
+
+///|
+pub extend AgentInterface with Eq::{not_equal, equal}
+
+///|
+pub extend AgentProvider with Debug::{to_repr}
+
+///|
+pub extend AgentProvider with Eq::{not_equal, equal}
+
+///|
+pub extend AgentSkill with Debug::{to_repr}
+
+///|
+pub extend AgentSkill with Eq::{not_equal, equal}

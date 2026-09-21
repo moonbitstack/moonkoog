@@ -45,8 +45,11 @@ pub(all) struct AgentCapabilities {
   state_transition_history : Bool?
   extensions : Array[AgentExtension]?
 } derive(Eq, @debug.Debug)
+pub fn AgentCapabilities::equal(Self, Self) -> Bool
 pub fn AgentCapabilities::from_json(Json) -> Self raise
+pub fn AgentCapabilities::not_equal(Self, Self) -> Bool
 pub fn AgentCapabilities::to_json(Self) -> Json
+pub fn AgentCapabilities::to_repr(Self) -> @debug.Repr
 
 pub(all) struct AgentCard {
   protocol_version : String
@@ -68,8 +71,11 @@ pub(all) struct AgentCard {
   supports_authenticated_extended_card : Bool?
   signatures : Json?
 } derive(Eq, @debug.Debug)
+pub fn AgentCard::equal(Self, Self) -> Bool
 pub fn AgentCard::from_json(Json) -> Self raise
+pub fn AgentCard::not_equal(Self, Self) -> Bool
 pub fn AgentCard::to_json(Self) -> Json
+pub fn AgentCard::to_repr(Self) -> @debug.Repr
 
 pub(all) struct AgentExtension {
   uri : String
@@ -77,22 +83,31 @@ pub(all) struct AgentExtension {
   required : Bool?
   params : Json?
 } derive(Eq, @debug.Debug)
+pub fn AgentExtension::equal(Self, Self) -> Bool
 pub fn AgentExtension::from_json(Json) -> Self raise
+pub fn AgentExtension::not_equal(Self, Self) -> Bool
 pub fn AgentExtension::to_json(Self) -> Json
+pub fn AgentExtension::to_repr(Self) -> @debug.Repr
 
 pub(all) struct AgentInterface {
   url : String
   transport : String
 } derive(Eq, @debug.Debug)
+pub fn AgentInterface::equal(Self, Self) -> Bool
 pub fn AgentInterface::from_json(Json) -> Self raise
+pub fn AgentInterface::not_equal(Self, Self) -> Bool
 pub fn AgentInterface::to_json(Self) -> Json
+pub fn AgentInterface::to_repr(Self) -> @debug.Repr
 
 pub(all) struct AgentProvider {
   organization : String
   url : String
 } derive(Eq, @debug.Debug)
+pub fn AgentProvider::equal(Self, Self) -> Bool
 pub fn AgentProvider::from_json(Json) -> Self raise
+pub fn AgentProvider::not_equal(Self, Self) -> Bool
 pub fn AgentProvider::to_json(Self) -> Json
+pub fn AgentProvider::to_repr(Self) -> @debug.Repr
 
 pub(all) struct AgentSkill {
   id : String
@@ -103,8 +118,11 @@ pub(all) struct AgentSkill {
   input_modes : Array[String]?
   output_modes : Array[String]?
 } derive(Eq, @debug.Debug)
+pub fn AgentSkill::equal(Self, Self) -> Bool
 pub fn AgentSkill::from_json(Json) -> Self raise
+pub fn AgentSkill::not_equal(Self, Self) -> Bool
 pub fn AgentSkill::to_json(Self) -> Json
+pub fn AgentSkill::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Artifact {
   artifact_id : String
@@ -114,18 +132,26 @@ pub(all) struct Artifact {
   extensions : Array[String]?
   metadata : Json?
 } derive(Eq, @debug.Debug)
+pub fn Artifact::equal(Self, Self) -> Bool
 pub fn Artifact::from_json(Json) -> Self raise
+pub fn Artifact::not_equal(Self, Self) -> Bool
 pub fn Artifact::to_json(Self) -> Json
+pub fn Artifact::to_repr(Self) -> @debug.Repr
 
 pub(all) enum FileContent {
   FileBytes(bytes~ : String, name~ : String?, mime_type~ : String?)
   FileUri(uri~ : String, name~ : String?, mime_type~ : String?)
 } derive(Eq, @debug.Debug)
+pub fn FileContent::equal(Self, Self) -> Bool
+pub fn FileContent::not_equal(Self, Self) -> Bool
+pub fn FileContent::to_repr(Self) -> @debug.Repr
 
 pub struct InMemoryTaskStore {
   tasks : Map[String, Task]
 }
+pub fn InMemoryTaskStore::get(Self, String) -> Task?
 pub fn InMemoryTaskStore::new() -> Self
+pub fn InMemoryTaskStore::save(Self, Task) -> Unit
 pub impl TaskStore for InMemoryTaskStore
 
 pub(all) struct Message {
@@ -138,8 +164,11 @@ pub(all) struct Message {
   context_id : String?
   metadata : Json?
 } derive(Eq, @debug.Debug)
+pub fn Message::equal(Self, Self) -> Bool
 pub fn Message::from_json(Json) -> Self raise
+pub fn Message::not_equal(Self, Self) -> Bool
 pub fn Message::to_json(Self) -> Json
+pub fn Message::to_repr(Self) -> @debug.Repr
 pub fn Message::user_text(String, String) -> Self
 
 pub(all) enum Part {
@@ -147,15 +176,21 @@ pub(all) enum Part {
   FilePart(FileContent)
   DataPart(Json)
 } derive(Eq, @debug.Debug)
+pub fn Part::equal(Self, Self) -> Bool
 pub fn Part::from_json(Json) -> Self raise
+pub fn Part::not_equal(Self, Self) -> Bool
 pub fn Part::to_json(Self) -> Json
+pub fn Part::to_repr(Self) -> @debug.Repr
 
 pub(all) struct PushAuthInfo {
   schemes : Array[String]
   credentials : String?
 } derive(Eq, @debug.Debug)
+pub fn PushAuthInfo::equal(Self, Self) -> Bool
 pub fn PushAuthInfo::from_json(Json) -> Self raise
+pub fn PushAuthInfo::not_equal(Self, Self) -> Bool
 pub fn PushAuthInfo::to_json(Self) -> Json
+pub fn PushAuthInfo::to_repr(Self) -> @debug.Repr
 
 pub(all) struct PushNotificationConfig {
   id : String?
@@ -163,8 +198,11 @@ pub(all) struct PushNotificationConfig {
   token : String?
   authentication : PushAuthInfo?
 } derive(Eq, @debug.Debug)
+pub fn PushNotificationConfig::equal(Self, Self) -> Bool
 pub fn PushNotificationConfig::from_json(Json) -> Self raise
+pub fn PushNotificationConfig::not_equal(Self, Self) -> Bool
 pub fn PushNotificationConfig::to_json(Self) -> Json
+pub fn PushNotificationConfig::to_repr(Self) -> @debug.Repr
 
 pub(all) struct RequestContext {
   message : Message
@@ -177,17 +215,26 @@ pub(all) enum Role {
   User
   Agent
 } derive(Eq, @debug.Debug)
+pub fn Role::equal(Self, Self) -> Bool
+pub fn Role::not_equal(Self, Self) -> Bool
+pub fn Role::to_repr(Self) -> @debug.Repr
 
 pub(all) enum SendResult {
   ResultTask(Task)
   ResultMessage(Message)
 } derive(Eq, @debug.Debug)
+pub fn SendResult::equal(Self, Self) -> Bool
+pub fn SendResult::not_equal(Self, Self) -> Bool
+pub fn SendResult::to_repr(Self) -> @debug.Repr
 
 pub(all) struct SseEvent {
   event : String
   data : String
   id : String?
 } derive(Eq, @debug.Debug)
+pub fn SseEvent::equal(Self, Self) -> Bool
+pub fn SseEvent::not_equal(Self, Self) -> Bool
+pub fn SseEvent::to_repr(Self) -> @debug.Repr
 
 pub(all) enum StreamEvent {
   StreamTask(Task)
@@ -195,7 +242,10 @@ pub(all) enum StreamEvent {
   StreamStatusUpdate(TaskStatusUpdateEvent)
   StreamArtifactUpdate(TaskArtifactUpdateEvent)
 } derive(Eq, @debug.Debug)
+pub fn StreamEvent::equal(Self, Self) -> Bool
 pub fn StreamEvent::from_json(Json) -> Self raise
+pub fn StreamEvent::not_equal(Self, Self) -> Bool
+pub fn StreamEvent::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Task {
   id : String
@@ -205,8 +255,11 @@ pub(all) struct Task {
   artifacts : Array[Artifact]?
   metadata : Json?
 } derive(Eq, @debug.Debug)
+pub fn Task::equal(Self, Self) -> Bool
 pub fn Task::from_json(Json) -> Self raise
+pub fn Task::not_equal(Self, Self) -> Bool
 pub fn Task::to_json(Self) -> Json
+pub fn Task::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TaskArtifactUpdateEvent {
   task_id : String
@@ -216,15 +269,21 @@ pub(all) struct TaskArtifactUpdateEvent {
   last_chunk : Bool?
   metadata : Json?
 } derive(Eq, @debug.Debug)
+pub fn TaskArtifactUpdateEvent::equal(Self, Self) -> Bool
 pub fn TaskArtifactUpdateEvent::from_json(Json) -> Self raise
+pub fn TaskArtifactUpdateEvent::not_equal(Self, Self) -> Bool
 pub fn TaskArtifactUpdateEvent::to_json(Self) -> Json
+pub fn TaskArtifactUpdateEvent::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TaskPushConfig {
   task_id : String
   config : PushNotificationConfig
 } derive(Eq, @debug.Debug)
+pub fn TaskPushConfig::equal(Self, Self) -> Bool
 pub fn TaskPushConfig::from_json(Json) -> Self raise
+pub fn TaskPushConfig::not_equal(Self, Self) -> Bool
 pub fn TaskPushConfig::to_json(Self) -> Json
+pub fn TaskPushConfig::to_repr(Self) -> @debug.Repr
 
 pub(all) enum TaskState {
   Submitted
@@ -237,8 +296,11 @@ pub(all) enum TaskState {
   AuthRequired
   Unknown
 } derive(Eq, @debug.Debug)
+pub fn TaskState::equal(Self, Self) -> Bool
 pub fn TaskState::from_wire(String) -> Self
+pub fn TaskState::not_equal(Self, Self) -> Bool
 pub fn TaskState::terminal(Self) -> Bool
+pub fn TaskState::to_repr(Self) -> @debug.Repr
 pub fn TaskState::wire(Self) -> String
 
 pub(all) struct TaskStatus {
@@ -246,8 +308,11 @@ pub(all) struct TaskStatus {
   message : Message?
   timestamp : String?
 } derive(Eq, @debug.Debug)
+pub fn TaskStatus::equal(Self, Self) -> Bool
 pub fn TaskStatus::from_json(Json) -> Self raise
+pub fn TaskStatus::not_equal(Self, Self) -> Bool
 pub fn TaskStatus::to_json(Self) -> Json
+pub fn TaskStatus::to_repr(Self) -> @debug.Repr
 
 pub(all) struct TaskStatusUpdateEvent {
   task_id : String
@@ -256,8 +321,11 @@ pub(all) struct TaskStatusUpdateEvent {
   is_final : Bool
   metadata : Json?
 } derive(Eq, @debug.Debug)
+pub fn TaskStatusUpdateEvent::equal(Self, Self) -> Bool
 pub fn TaskStatusUpdateEvent::from_json(Json) -> Self raise
+pub fn TaskStatusUpdateEvent::not_equal(Self, Self) -> Bool
 pub fn TaskStatusUpdateEvent::to_json(Self) -> Json
+pub fn TaskStatusUpdateEvent::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

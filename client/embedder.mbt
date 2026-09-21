@@ -40,3 +40,6 @@ pub impl @embeddings.Embedder for LLMEmbedder with fn diff(
   // Cosine distance; a dimension mismatch counts as fully different.
   1.0 - (embedding1.cosine_similarity(embedding2) catch { _ => 0.0 })
 }
+
+///|
+pub extend LLMEmbedder with @embeddings.Embedder::{embed, diff}

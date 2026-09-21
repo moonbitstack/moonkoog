@@ -41,3 +41,6 @@ pub impl Embedder for MockEmbedder with fn diff(self, embedding1, embedding2) {
   let similarity = embedding1.cosine_similarity(embedding2) catch { _ => 0.0 }
   1.0 - similarity
 }
+
+///|
+pub extend MockEmbedder with Embedder::{embed, diff}

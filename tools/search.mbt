@@ -44,3 +44,6 @@ pub impl Tool for RegexSearchTool with fn execute_raw(self, args) {
   }
   out.to_string()
 }
+
+///|
+pub extend RegexSearchTool with Tool::{descriptor, execute_raw}

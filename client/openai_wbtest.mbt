@@ -9,7 +9,7 @@ test "to_llm_message maps a plain user message" {
 ///|
 test "to_llm_message maps a tool result to a tool-role message linked by id" {
   let m = to_llm_message(
-    @prompt.Message::tool_result(tool="add", output="5", id=Some("c1")),
+    @prompt.Message::tool_result(tool="add", output="5", id="c1"),
   )
   assert_eq(m.role, @moonllm.Tool)
   assert_eq(m.content.to_text(), "5")

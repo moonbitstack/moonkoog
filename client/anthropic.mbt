@@ -281,3 +281,12 @@ pub impl @agent.LLMClient for AnthropicClient with fn execute_multiple(
 ) {
   [self.execute(prompt~, model~, tools~)]
 }
+
+///|
+pub extend AnthropicClient with @agent.LLMClient::{
+  execute,
+  provider,
+  execute_streaming,
+  moderate,
+  execute_multiple,
+}

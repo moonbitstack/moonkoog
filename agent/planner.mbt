@@ -285,3 +285,21 @@ fn trim_spaces(s : String) -> String {
   }
   sb.to_string()
 }
+
+///|
+pub extend PlanAssessment with Debug::{to_repr}
+
+///|
+pub extend PlanAssessment with Eq::{not_equal, equal}
+
+///|
+pub extend PlanStep with Debug::{to_repr}
+
+///|
+pub extend PlanStep with Eq::{not_equal, equal}
+
+///|
+pub extend SimplePlan with Debug::{to_repr}
+
+///|
+pub extend SimplePlan with Eq::{not_equal, equal}

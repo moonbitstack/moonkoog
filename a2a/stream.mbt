@@ -152,3 +152,21 @@ pub fn stream_message(
   }
   events
 }
+
+///|
+pub extend StreamEvent with Debug::{to_repr}
+
+///|
+pub extend StreamEvent with Eq::{not_equal, equal}
+
+///|
+pub extend TaskArtifactUpdateEvent with Debug::{to_repr}
+
+///|
+pub extend TaskArtifactUpdateEvent with Eq::{not_equal, equal}
+
+///|
+pub extend TaskStatusUpdateEvent with Debug::{to_repr}
+
+///|
+pub extend TaskStatusUpdateEvent with Eq::{not_equal, equal}

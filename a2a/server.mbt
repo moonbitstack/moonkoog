@@ -215,3 +215,6 @@ fn error_response(id : Json, message : String) -> Json {
     "error": { "code": Json::number(-32000), "message": message },
   }
 }
+
+///|
+pub extend InMemoryTaskStore with TaskStore::{save, get}

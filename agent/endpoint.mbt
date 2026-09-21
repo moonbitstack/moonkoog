@@ -75,3 +75,9 @@ fn output_body(output : String) -> String {
 fn error_body(message : String) -> String {
   ({ "error": message } : Json).stringify()
 }
+
+///|
+pub extend AgentResponse with Debug::{to_repr}
+
+///|
+pub extend AgentResponse with Eq::{not_equal, equal}

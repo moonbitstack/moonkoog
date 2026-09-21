@@ -137,3 +137,21 @@ pub fn ToolRegistry::descriptors(self : ToolRegistry) -> Array[ToolDescriptor] {
   }
   ds
 }
+
+///|
+pub extend ToolDescriptor with Debug::{to_repr}
+
+///|
+pub extend ToolDescriptor with Eq::{not_equal, equal}
+
+///|
+pub extend ToolParameterDescriptor with Debug::{to_repr}
+
+///|
+pub extend ToolParameterDescriptor with Eq::{not_equal, equal}
+
+///|
+pub extend ToolParameterType with Debug::{to_repr}
+
+///|
+pub extend ToolParameterType with Eq::{not_equal, equal}

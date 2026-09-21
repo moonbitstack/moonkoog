@@ -102,3 +102,12 @@ pub impl LLMClient for MultiLLMClient with fn execute_multiple(
       }
   }
 }
+
+///|
+pub extend MultiLLMClient with LLMClient::{
+  execute,
+  provider,
+  execute_streaming,
+  moderate,
+  execute_multiple,
+}

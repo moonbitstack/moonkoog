@@ -35,6 +35,8 @@ pub struct McpTool {
   client : McpClient
   desc : @tools.ToolDescriptor
 }
+pub fn McpTool::descriptor(Self) -> @tools.ToolDescriptor
+pub fn McpTool::execute_raw(Self, Json) -> String raise
 pub fn McpTool::new(McpClient, @tools.ToolDescriptor) -> Self
 pub impl @tools.Tool for McpTool
 

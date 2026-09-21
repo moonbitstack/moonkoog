@@ -141,3 +141,15 @@ pub impl Tool for ListDirectoryTool with fn execute_raw(self, args) {
   let entries = self.fs.list(arg_string(args, "path"))
   entries.join("\n")
 }
+
+///|
+pub extend ListDirectoryTool with Tool::{descriptor, execute_raw}
+
+///|
+pub extend MemFileSystem with FileSystem::{read, list, write}
+
+///|
+pub extend ReadFileTool with Tool::{descriptor, execute_raw}
+
+///|
+pub extend WriteFileTool with Tool::{descriptor, execute_raw}

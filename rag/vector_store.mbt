@@ -129,3 +129,15 @@ pub fn[Doc] rank_by_similarity(
   }
   out
 }
+
+///|
+pub extend Score with Debug::{to_repr}
+
+///|
+pub extend Score with Eq::{not_equal, equal}
+
+///|
+pub extend ScoreMetric with Debug::{to_repr}
+
+///|
+pub extend ScoreMetric with Eq::{not_equal, equal}

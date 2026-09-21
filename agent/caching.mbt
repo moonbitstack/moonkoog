@@ -80,3 +80,12 @@ pub impl LLMClient for CachingClient with fn execute_multiple(
 ) {
   LLMClient::execute_multiple(self.inner, prompt~, model~, tools~)
 }
+
+///|
+pub extend CachingClient with LLMClient::{
+  execute,
+  provider,
+  execute_streaming,
+  moderate,
+  execute_multiple,
+}

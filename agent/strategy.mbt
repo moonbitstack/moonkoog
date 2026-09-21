@@ -282,7 +282,7 @@ pub fn AIAgentStrategy::edge(
   from : String,
   to : String,
   condition? : EdgeCondition = Always,
-  transform? : ((NodeValue) -> NodeValue)? = None,
+  transform? : (NodeValue) -> NodeValue,
 ) -> AIAgentStrategy {
   self.edges.push({ from, to, condition, transform, })
   self
@@ -323,12 +323,9 @@ pub fn chat_agent_strategy(max_steps? : Int = 1000) -> AIAgentStrategy {
   .edge("feedback", "feedback", condition=OnAssistantMessage)
   .edge("feedback", "execute_tools", condition=OnToolCalls)
   .edge("execute_tools", "send_tool_result")
-  .edge(
-    "send_tool_result",
-    finish_node,
-    condition=OnToolNamed("__exit__"),
-    transform=Some(_ => VText("Chat finished")),
-  )
+  .edge("send_tool_result", finish_node, condition=OnToolNamed("__exit__"), transform=_ => {
+    VText("Chat finished")
+  })
   .edge("send_tool_result", finish_node, condition=OnAssistantMessage)
   .edge("send_tool_result", "execute_tools", condition=OnToolCalls)
 }
@@ -613,7 +610,7 @@ async fn run_node(
         }
         let output = (ctx.events.on_tool_call_completed)(tool, output)
         ctx.prompt = ctx.prompt.append(
-          @prompt.Message::tool_result(tool~, output~, id~, is_error=failed),
+          @prompt.Message::tool_result(tool~, output~, id?, is_error=failed),
         )
       }
       VUnit
@@ -792,11 +789,11 @@ fn snapshot(
       created_at~,
       node_id=node,
       message_history=[..ctx.prompt.messages],
-      llm_params=Some(ctx.prompt.params),
-      llm_model=Some(ctx.model),
-      tools=Some(ctx.descriptors.map(d => d.name)),
+      llm_params=ctx.prompt.params,
+      llm_model=ctx.model,
+      tools=ctx.descriptors.map(d => d.name),
       storage=ctx.storage.snapshot(),
-      last_input=Some(value.to_json()),
+      last_input=value.to_json(),
       agent_iterations=ctx.llm_calls.val,
     ),
   )
@@ -817,7 +814,7 @@ async fn run_graph(
   ctx : StrategyContext,
   strategy : AIAgentStrategy,
   input : NodeValue,
-  at? : String? = None,
+  at? : String,
   top? : Bool = false,
 ) -> NodeValue {
   for step = 0, current = at.unwrap_or(strategy.start), value = input; step <
@@ -914,7 +911,7 @@ pub async fn AIAgent::run_strategy(
   }
   (self.events.on_agent_starting)(input)
   (self.events.on_strategy_starting)(strategy.name)
-  let walked = Ok(run_graph(ctx, strategy, value, at~, top=true)) catch {
+  let walked = Ok(run_graph(ctx, strategy, value, at?, top=true)) catch {
     e => Err(e)
   }
   let result = match walked {
@@ -928,3 +925,9 @@ pub async fn AIAgent::run_strategy(
   (self.events.on_agent_completed)(result)
   result
 }
+
+///|
+pub extend NodeValue with Debug::{to_repr}
+
+///|
+pub extend NodeValue with Eq::{not_equal, equal}

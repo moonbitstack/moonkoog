@@ -43,3 +43,6 @@ pub impl Tool for ExecuteShellCommandTool with fn descriptor(_self) {
 pub impl Tool for ExecuteShellCommandTool with fn execute_raw(self, args) {
   self.executor.run(arg_string(args, "command"))
 }
+
+///|
+pub extend ExecuteShellCommandTool with Tool::{descriptor, execute_raw}

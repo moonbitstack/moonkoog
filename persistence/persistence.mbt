@@ -29,11 +29,11 @@ pub fn AgentCheckpoint::new(
   created_at~ : Int64,
   node_id~ : String,
   message_history? : Array[@prompt.Message] = [],
-  llm_params? : @prompt.LLMParams? = None,
-  llm_model? : @llm.LLModel? = None,
-  tools? : Array[String]? = None,
+  llm_params? : @prompt.LLMParams,
+  llm_model? : @llm.LLModel,
+  tools? : Array[String],
   storage? : Json = Json::object({}),
-  last_input? : Json? = None,
+  last_input? : Json,
   agent_iterations? : Int = 0,
   version? : Int64 = 1L,
 ) -> AgentCheckpoint {
@@ -170,3 +170,9 @@ pub impl PersistenceStorageProvider for InMemoryPersistence with fn get_latest_c
 ) {
   self.latest(session_id)
 }
+
+///|
+pub extend AgentCheckpoint with Debug::{to_repr}
+
+///|
+pub extend AgentCheckpoint with Eq::{not_equal, equal}

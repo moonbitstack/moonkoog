@@ -13,47 +13,64 @@ import {
 pub struct AskUser {
   responder : (String) -> String
 }
+pub fn AskUser::descriptor(Self) -> ToolDescriptor
+pub fn AskUser::execute_raw(Self, Json) -> String raise
 pub fn AskUser::new((String) -> String) -> Self
 pub impl Tool for AskUser
 
 pub struct ExecuteShellCommandTool {
   executor : &ShellExecutor
 }
+pub fn ExecuteShellCommandTool::descriptor(Self) -> ToolDescriptor
+pub fn ExecuteShellCommandTool::execute_raw(Self, Json) -> String raise
 pub fn ExecuteShellCommandTool::new(&ShellExecutor) -> Self
 pub impl Tool for ExecuteShellCommandTool
 
 pub struct ExitTool {
 }
+pub fn ExitTool::descriptor(Self) -> ToolDescriptor
+pub fn ExitTool::execute_raw(Self, Json) -> String raise
 pub fn ExitTool::new() -> Self
 pub impl Tool for ExitTool
 
 pub struct ListDirectoryTool {
   fs : &FileSystem
 }
+pub fn ListDirectoryTool::descriptor(Self) -> ToolDescriptor
+pub fn ListDirectoryTool::execute_raw(Self, Json) -> String raise
 pub fn ListDirectoryTool::new(&FileSystem) -> Self
 pub impl Tool for ListDirectoryTool
 
 pub struct MemFileSystem {
   files : Map[String, String]
 }
+pub fn MemFileSystem::list(Self, String) -> Array[String]
 pub fn MemFileSystem::new() -> Self
+pub fn MemFileSystem::read(Self, String) -> String?
+pub fn MemFileSystem::write(Self, String, String) -> Unit
 pub impl FileSystem for MemFileSystem
 
 pub struct ReadFileTool {
   fs : &FileSystem
 }
+pub fn ReadFileTool::descriptor(Self) -> ToolDescriptor
+pub fn ReadFileTool::execute_raw(Self, Json) -> String raise
 pub fn ReadFileTool::new(&FileSystem) -> Self
 pub impl Tool for ReadFileTool
 
 pub struct RegexSearchTool {
   fs : &FileSystem
 }
+pub fn RegexSearchTool::descriptor(Self) -> ToolDescriptor
+pub fn RegexSearchTool::execute_raw(Self, Json) -> String raise
 pub fn RegexSearchTool::new(&FileSystem) -> Self
 pub impl Tool for RegexSearchTool
 
 pub struct SayToUser {
   sink : (String) -> Unit
 }
+pub fn SayToUser::descriptor(Self) -> ToolDescriptor
+pub fn SayToUser::execute_raw(Self, Json) -> String raise
 pub fn SayToUser::new((String) -> Unit) -> Self
 pub impl Tool for SayToUser
 
@@ -63,12 +80,18 @@ pub(all) struct ToolDescriptor {
   required_parameters : Array[ToolParameterDescriptor]
   optional_parameters : Array[ToolParameterDescriptor]
 } derive(Eq, @debug.Debug)
+pub fn ToolDescriptor::equal(Self, Self) -> Bool
+pub fn ToolDescriptor::not_equal(Self, Self) -> Bool
+pub fn ToolDescriptor::to_repr(Self) -> @debug.Repr
 
 pub(all) struct ToolParameterDescriptor {
   name : String
   description : String
   ptype : ToolParameterType
 } derive(Eq, @debug.Debug)
+pub fn ToolParameterDescriptor::equal(Self, Self) -> Bool
+pub fn ToolParameterDescriptor::not_equal(Self, Self) -> Bool
+pub fn ToolParameterDescriptor::to_repr(Self) -> @debug.Repr
 
 pub(all) enum ToolParameterType {
   TString
@@ -81,7 +104,10 @@ pub(all) enum ToolParameterType {
   TObject(properties~ : Array[ToolParameterDescriptor], required~ : Array[String])
   TAnyOf(Array[ToolParameterDescriptor])
 } derive(Eq, @debug.Debug)
+pub fn ToolParameterType::equal(Self, Self) -> Bool
+pub fn ToolParameterType::not_equal(Self, Self) -> Bool
 pub fn ToolParameterType::to_json_schema(Self) -> Json
+pub fn ToolParameterType::to_repr(Self) -> @debug.Repr
 
 pub(all) struct ToolRegistry {
   tools : Array[&Tool]
@@ -94,6 +120,8 @@ pub fn ToolRegistry::new() -> Self
 pub struct WriteFileTool {
   fs : &FileSystem
 }
+pub fn WriteFileTool::descriptor(Self) -> ToolDescriptor
+pub fn WriteFileTool::execute_raw(Self, Json) -> String raise
 pub fn WriteFileTool::new(&FileSystem) -> Self
 pub impl Tool for WriteFileTool
 

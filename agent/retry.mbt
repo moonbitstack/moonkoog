@@ -135,9 +135,9 @@ pub fn RetryingClient::new(
   inner : &LLMClient,
   config? : RetryConfig = RetryConfig::default(),
   describe? : (Error) -> String = default_describe,
-  retryable? : ((Error) -> Bool)? = None,
+  retryable? : (Error) -> Bool,
   wait? : async (Int) -> Unit = @async.sleep,
-  seed? : Bytes? = None,
+  seed? : Bytes,
 ) -> RetryingClient {
   let retryable = match retryable {
     Some(classify) => classify
@@ -206,4 +206,19 @@ pub impl LLMClient for RetryingClient with fn execute_multiple(
   tools~,
 ) {
   LLMClient::execute_multiple(self.inner, prompt~, model~, tools~)
+}
+
+///|
+pub extend RetryPattern with Debug::{to_repr}
+
+///|
+pub extend RetryPattern with Eq::{not_equal, equal}
+
+///|
+pub extend RetryingClient with LLMClient::{
+  execute,
+  provider,
+  execute_streaming,
+  moderate,
+  execute_multiple,
 }

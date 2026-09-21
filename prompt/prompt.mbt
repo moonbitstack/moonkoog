@@ -136,7 +136,7 @@ pub fn PromptBuilder::tool_result(
   self : PromptBuilder,
   tool~ : String,
   output~ : String,
-  id? : String? = None,
+  id? : String,
   is_error? : Bool = false,
 ) -> PromptBuilder {
   self.messages.push({
@@ -163,3 +163,36 @@ pub fn PromptBuilder::params(
 pub fn PromptBuilder::build(self : PromptBuilder) -> Prompt {
   { messages: self.messages, id: self.id, params: self.params, }
 }
+
+///|
+pub extend LLMParams with Debug::{to_repr}
+
+///|
+pub extend LLMParams with Eq::{not_equal, equal}
+
+///|
+pub extend LLMParams with ToJson::{to_json}
+
+///|
+pub extend Prompt with Debug::{to_repr}
+
+///|
+pub extend Prompt with Eq::{not_equal, equal}
+
+///|
+pub extend Schema with Debug::{to_repr}
+
+///|
+pub extend Schema with Eq::{not_equal, equal}
+
+///|
+pub extend Schema with ToJson::{to_json}
+
+///|
+pub extend ToolChoice with Debug::{to_repr}
+
+///|
+pub extend ToolChoice with Eq::{not_equal, equal}
+
+///|
+pub extend ToolChoice with ToJson::{to_json}

@@ -24,6 +24,10 @@ pub(all) struct LLMParams {
   additional_properties : Map[String, Json]?
 } derive(Eq, ToJson, @debug.Debug)
 pub fn LLMParams::default() -> Self
+pub fn LLMParams::equal(Self, Self) -> Bool
+pub fn LLMParams::not_equal(Self, Self) -> Bool
+pub fn LLMParams::to_json(Self) -> Json
+pub fn LLMParams::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Message {
   role : Role
@@ -32,10 +36,15 @@ pub(all) struct Message {
   meta : ResponseMetaInfo?
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn Message::assistant(String) -> Self
+pub fn Message::equal(Self, Self) -> Bool
+pub fn Message::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Message::not_equal(Self, Self) -> Bool
 pub fn Message::system(String) -> Self
 pub fn Message::text_content(Self, separator? : String) -> String
+pub fn Message::to_json(Self) -> Json
+pub fn Message::to_repr(Self) -> @debug.Repr
 pub fn Message::tool_calls(Self) -> Array[MessagePart]
-pub fn Message::tool_result(tool~ : String, output~ : String, id? : String?, is_error? : Bool) -> Self
+pub fn Message::tool_result(tool~ : String, output~ : String, id? : String, is_error? : Bool) -> Self
 pub fn Message::total_tokens(Self) -> Int?
 pub fn Message::user(String) -> Self
 pub fn Message::with_meta(Self, ResponseMetaInfo) -> Self
@@ -46,6 +55,11 @@ pub(all) enum MessagePart {
   ToolCall(id~ : String?, tool~ : String, args~ : Json)
   ToolResult(id~ : String?, tool~ : String, output~ : String, is_error~ : Bool)
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn MessagePart::equal(Self, Self) -> Bool
+pub fn MessagePart::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn MessagePart::not_equal(Self, Self) -> Bool
+pub fn MessagePart::to_json(Self) -> Json
+pub fn MessagePart::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Prompt {
   messages : Array[Message]
@@ -53,6 +67,9 @@ pub(all) struct Prompt {
   params : LLMParams
 } derive(Eq, @debug.Debug)
 pub fn Prompt::append(Self, Message) -> Self
+pub fn Prompt::equal(Self, Self) -> Bool
+pub fn Prompt::not_equal(Self, Self) -> Bool
+pub fn Prompt::to_repr(Self) -> @debug.Repr
 
 pub struct PromptBuilder {
   messages : Array[Message]
@@ -65,7 +82,7 @@ pub fn PromptBuilder::message(Self, Message) -> Self
 pub fn PromptBuilder::new(id? : String, params? : LLMParams) -> Self
 pub fn PromptBuilder::params(Self, LLMParams) -> Self
 pub fn PromptBuilder::system(Self, String) -> Self
-pub fn PromptBuilder::tool_result(Self, tool~ : String, output~ : String, id? : String?, is_error? : Bool) -> Self
+pub fn PromptBuilder::tool_result(Self, tool~ : String, output~ : String, id? : String, is_error? : Bool) -> Self
 pub fn PromptBuilder::user(Self, String) -> Self
 
 pub(all) struct ResponseMetaInfo {
@@ -75,17 +92,31 @@ pub(all) struct ResponseMetaInfo {
   model : String?
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn ResponseMetaInfo::empty() -> Self
+pub fn ResponseMetaInfo::equal(Self, Self) -> Bool
+pub fn ResponseMetaInfo::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn ResponseMetaInfo::not_equal(Self, Self) -> Bool
+pub fn ResponseMetaInfo::to_json(Self) -> Json
+pub fn ResponseMetaInfo::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Role {
   System
   User
   Assistant
 } derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn Role::equal(Self, Self) -> Bool
+pub fn Role::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Role::not_equal(Self, Self) -> Bool
+pub fn Role::to_json(Self) -> Json
+pub fn Role::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Schema {
   JsonBasic(name~ : String, schema~ : Json)
   JsonStandard(name~ : String, schema~ : Json)
 } derive(Eq, ToJson, @debug.Debug)
+pub fn Schema::equal(Self, Self) -> Bool
+pub fn Schema::not_equal(Self, Self) -> Bool
+pub fn Schema::to_json(Self) -> Json
+pub fn Schema::to_repr(Self) -> @debug.Repr
 
 pub(all) enum ToolChoice {
   Auto
@@ -93,6 +124,10 @@ pub(all) enum ToolChoice {
   Required
   Named(String)
 } derive(Eq, ToJson, @debug.Debug)
+pub fn ToolChoice::equal(Self, Self) -> Bool
+pub fn ToolChoice::not_equal(Self, Self) -> Bool
+pub fn ToolChoice::to_json(Self) -> Json
+pub fn ToolChoice::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

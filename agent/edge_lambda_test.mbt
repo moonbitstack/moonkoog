@@ -45,11 +45,7 @@ async test "an edge transform rewrites the value the next node sees" {
         v
       })
       .edge(@agent.start_node, "src")
-      .edge(
-        "src",
-        "sink",
-        transform=Some(v => @agent.VText("[" + v.text() + "]")),
-      )
+      .edge("src", "sink", transform=v => @agent.VText("[" + v.text() + "]"))
       .edge("sink", @agent.finish_node)
     let agent = @agent.AIAgent::new(
       @agent.MockClient::new([]),

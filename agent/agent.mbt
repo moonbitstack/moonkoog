@@ -75,7 +75,7 @@ pub fn AIAgent::new(
   executor : &LLMClient,
   model~ : @llm.LLModel,
   tool_registry? : @tools.ToolRegistry = @tools.ToolRegistry::new(),
-  system_prompt? : String? = None,
+  system_prompt? : String,
   params? : @prompt.LLMParams = @prompt.LLMParams::default(),
   max_iterations? : Int = 50,
   events? : EventHandler = EventHandler::new(),

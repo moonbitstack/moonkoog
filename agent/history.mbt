@@ -68,3 +68,9 @@ async fn HistoryCompressor::summarize(
   let reply = LLMClient::execute(self.client, prompt~, model=self.model, tools=[])
   @prompt.Message::assistant("TLDR: " + reply.text_content())
 }
+
+///|
+pub extend HistoryCompression with Debug::{to_repr}
+
+///|
+pub extend HistoryCompression with Eq::{not_equal, equal}

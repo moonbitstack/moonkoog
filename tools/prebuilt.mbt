@@ -103,3 +103,12 @@ pub impl Tool for AskUser with fn descriptor(_self) {
 pub impl Tool for AskUser with fn execute_raw(self, args) {
   (self.responder)(arg_string(args, "question"))
 }
+
+///|
+pub extend AskUser with Tool::{descriptor, execute_raw}
+
+///|
+pub extend ExitTool with Tool::{descriptor, execute_raw}
+
+///|
+pub extend SayToUser with Tool::{descriptor, execute_raw}

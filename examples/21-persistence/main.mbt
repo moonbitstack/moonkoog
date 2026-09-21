@@ -12,7 +12,7 @@ fn checkpoint(
       @prompt.Message::user(input),
       @prompt.Message::assistant("acknowledged: " + input),
     ],
-    last_input=Some(Json::string(input)),
+    last_input=Json::string(input),
     agent_iterations=1,
   )
 }

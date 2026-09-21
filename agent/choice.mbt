@@ -94,3 +94,9 @@ fn choice_index(text : String, count : Int) -> Int {
     num
   }
 }
+
+///|
+pub extend FirstChoice with ChoiceSelectionStrategy::{choose}
+
+///|
+pub extend LLMChoiceSelector with ChoiceSelectionStrategy::{choose}

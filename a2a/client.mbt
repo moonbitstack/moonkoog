@@ -96,3 +96,9 @@ pub fn A2AClient::get_task(
 pub fn A2AClient::cancel_task(self : A2AClient, task_id : String) -> Task raise {
   Task::from_json(self.request("tasks/cancel", { "id": task_id }))
 }
+
+///|
+pub extend SendResult with Debug::{to_repr}
+
+///|
+pub extend SendResult with Eq::{not_equal, equal}

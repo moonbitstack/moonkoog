@@ -158,3 +158,21 @@ pub fn A2AClient::delete_push_config(
   })
   |> ignore
 }
+
+///|
+pub extend PushAuthInfo with Debug::{to_repr}
+
+///|
+pub extend PushAuthInfo with Eq::{not_equal, equal}
+
+///|
+pub extend PushNotificationConfig with Debug::{to_repr}
+
+///|
+pub extend PushNotificationConfig with Eq::{not_equal, equal}
+
+///|
+pub extend TaskPushConfig with Debug::{to_repr}
+
+///|
+pub extend TaskPushConfig with Eq::{not_equal, equal}

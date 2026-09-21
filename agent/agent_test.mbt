@@ -107,7 +107,7 @@ async test "agent runs the singleRunStrategy loop end to end: request, execute t
       LoopClient::{ },
       model=@llm.deepseek_v4_flash,
       tool_registry=registry,
-      system_prompt=Some("you can add"),
+      system_prompt="you can add",
     )
     let out = agent.run("what is 2+3?") catch {
       e => fail("agent raised: " + e.to_string())

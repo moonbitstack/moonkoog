@@ -24,7 +24,7 @@ pub struct Checkpointer {
 pub fn Checkpointer::new(
   store : &@persistence.PersistenceStorageProvider,
   session~ : String,
-  clock? : (() -> Int64)? = None,
+  clock? : () -> Int64,
 ) -> Checkpointer {
   { store, session, clock, seq: 0, }
 }

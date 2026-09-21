@@ -182,11 +182,17 @@ pub(all) enum LLMCapability {
   OpenAIEndpointCompletions
   OpenAIEndpointResponses
 } derive(Eq, @debug.Debug)
+pub fn LLMCapability::equal(Self, Self) -> Bool
+pub fn LLMCapability::not_equal(Self, Self) -> Bool
+pub fn LLMCapability::to_repr(Self) -> @debug.Repr
 
 pub(all) struct LLMProvider {
   id : String
   display : String
 } derive(Eq, @debug.Debug)
+pub fn LLMProvider::equal(Self, Self) -> Bool
+pub fn LLMProvider::not_equal(Self, Self) -> Bool
+pub fn LLMProvider::to_repr(Self) -> @debug.Repr
 
 pub(all) struct LLModel {
   provider : LLMProvider
@@ -195,7 +201,10 @@ pub(all) struct LLModel {
   context_length : Int?
   max_output_tokens : Int?
 } derive(Eq, @debug.Debug)
+pub fn LLModel::equal(Self, Self) -> Bool
+pub fn LLModel::not_equal(Self, Self) -> Bool
 pub fn LLModel::supports(Self, LLMCapability) -> Bool
+pub fn LLModel::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

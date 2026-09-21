@@ -68,7 +68,7 @@ async fn main {
       client,
       model~,
       tool_registry=registry,
-      system_prompt=Some("Use the add tool to compute sums. Answer concisely."),
+      system_prompt="Use the add tool to compute sums. Answer concisely.",
     )
     let answer = agent.run("What is 21 + 21? Use the add tool.") catch {
       e => "error: " + e.to_string()
