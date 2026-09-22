@@ -63,7 +63,7 @@ fn show_stream_event(ev : @a2a.StreamEvent) -> String {
 /// The A2A JSON-RPC protocol end to end: an `A2AClient` whose transport is a real
 /// `A2AServer` over an `AgentExecutor` and a task store. `message/send`, `tasks/get`,
 /// `tasks/cancel`, and the push-notification config methods travel the actual
-/// protocol; `parse_sse` decodes a raw event stream and `stream_message` turns
+/// protocol; `@sse.events` reads a raw event stream and `stream_message` turns
 /// JSON-RPC frames into typed `StreamEvent`s.
 ///
 ///     moon run examples/25-a2a-protocol --target native
@@ -107,7 +107,7 @@ fn main {
     e => println("protocol error: " + e.to_string())
   }
 
-  // The SSE codec, standalone: comments dropped, multi-line data joined, id kept.
+  // The event stream on its own: comments dropped, multi-line data joined, id kept.
   let raw =
     #|: a comment
     #|event: status
@@ -120,14 +120,12 @@ fn main {
     #|event: done
     #|data: bye
     #|
-  let events = @a2a.parse_sse(raw)
-  println("parse_sse -> \{events.length()} events")
+  let events = @sse.events(raw)
+  println("@sse.events -> \{events.length()} events")
   for e in events {
-    let id = match e.id {
-      Some(x) => x
-      None => "-"
-    }
-    println("  event=" + e.event + " id=" + id + " data=" + e.data)
+    let kind = e.kind.unwrap_or("message")
+    let id = e.id.unwrap_or("-")
+    println("  event=" + kind + " id=" + id + " data=" + e.data)
   }
 
   // Streaming: JSON-RPC status-update frames become typed events.

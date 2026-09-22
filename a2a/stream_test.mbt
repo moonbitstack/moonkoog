@@ -1,5 +1,6 @@
-// A2A streaming: the SSE codec parses a raw stream byte-exact, and the streaming client turns an SSE
-// body of JSON-RPC frames into typed StreamEvents through an injectable event source.
+// A2A streaming: the event stream reads the way an EventSource dispatches it, and the streaming
+// client turns an SSE body of JSON-RPC frames into typed StreamEvents through an injectable event
+// source.
 
 ///|
 /// An event source returning a canned SSE body.
@@ -13,7 +14,7 @@ impl @a2a.EventStream for MockEventStream with fn open_stream(self, _request) {
 }
 
 ///|
-test "sse codec: parses comments, event types, multi-line data, and a persisted id" {
+test "sse: comments dropped, event types kept, multi-line data joined, the id persisted" {
   let stream =
     #|: this is a comment
     #|event: status
@@ -26,11 +27,11 @@ test "sse codec: parses comments, event types, multi-line data, and a persisted 
     #|event: done
     #|data: bye
     #|
-  let events = @a2a.parse_sse(stream)
+  let events = @sse.events(stream)
   assert_eq(events.length(), 3)
-  assert_eq(events[0], { event: "status", data: "{\"a\":1}", id: None, })
-  assert_eq(events[1], { event: "message", data: "line1\nline2", id: None, })
-  assert_eq(events[2], { event: "done", data: "bye", id: Some("42"), })
+  assert_eq(events[0], @sse.Event::new(data="{\"a\":1}", kind="status"))
+  assert_eq(events[1], @sse.Event::new(data="line1\nline2", kind="message"))
+  assert_eq(events[2], @sse.Event::new(data="bye", kind="done", id="42"))
 }
 
 ///|

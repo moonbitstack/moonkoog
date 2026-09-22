@@ -45,8 +45,9 @@ pub async fn AgentEndpoint::handle_sse(
   body : String,
 ) -> String {
   match parse_message(body) {
-    Some(message) => "data: " + output_body(self.agent.run(message)) + "\n\n"
-    None => "event: error\ndata: invalid request body\n\n"
+    Some(message) =>
+      @sse.Event::of(output_body(self.agent.run(message))).encode()
+    None => @sse.Event::new(data="invalid request body", kind="error").encode()
   }
 }
 

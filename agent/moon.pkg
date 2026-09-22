@@ -8,6 +8,7 @@ supported_targets = "native"
 import {
   "moonbitstack/moondate",
   "moonbitstack/moonpool",
+  "moonbitstack/moonhttp/sse",
   "moonbitstack/moonkoog/prompt",
   "moonbitstack/moonkoog/llm",
   "moonbitstack/moonkoog/tools",

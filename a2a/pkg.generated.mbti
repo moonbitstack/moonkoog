@@ -6,8 +6,6 @@ import {
 }
 
 // Values
-pub fn parse_sse(String) -> Array[SseEvent]
-
 pub fn resolve_agent_card(&CardSource) -> AgentCard raise
 
 pub fn stream_message(&EventStream, Message) -> Array[StreamEvent] raise
@@ -226,15 +224,6 @@ pub(all) enum SendResult {
 pub fn SendResult::equal(Self, Self) -> Bool
 pub fn SendResult::not_equal(Self, Self) -> Bool
 pub fn SendResult::to_repr(Self) -> @debug.Repr
-
-pub(all) struct SseEvent {
-  event : String
-  data : String
-  id : String?
-} derive(Eq, @debug.Debug)
-pub fn SseEvent::equal(Self, Self) -> Bool
-pub fn SseEvent::not_equal(Self, Self) -> Bool
-pub fn SseEvent::to_repr(Self) -> @debug.Repr
 
 pub(all) enum StreamEvent {
   StreamTask(Task)

@@ -18,10 +18,10 @@ to Koog's `1.1.1` release. Where Kotlin leans on reflection (deriving a tool's
 JSON schema from its argument type via `kotlinx.serialization` + a `TypeToken`),
 MoonBit has none, so a tool states its schema through an explicit descriptor — the
 same approach [moonapi](https://github.com/moonbitstack/moonapi) and
-[moonctl](https://github.com/moonbitstack/moonctl) take. It is part of the **moon-heke**
+[moonctl](https://github.com/moonbitstack/moonctl) take. It is part of the **moonbitstack**
 full-stack suite and composes with it: an agent serves over
 [moonapi](https://github.com/moonbitstack/moonapi)/[mooncat](https://github.com/moonbitstack/mooncat),
-streams tokens over moonasgi SSE, and checkpoints to
+streams tokens as [moonhttp](https://github.com/moonbitstack/moonhttp) server-sent events, and checkpoints to
 [moonorm](https://github.com/moonbitstack/moonorm).
 
 ## What works today
@@ -85,7 +85,7 @@ failure ones — and the LLM and tool hooks come in an intercepting form that ca
 rewrite the prompt, the reply, a tool's arguments or its result; `Tracing` renders
 all of them to a `TraceWriter`, and a reply carries the tokens the provider charged
 as `ResponseMetaInfo`. Next: multi-provider executors, memory, an OpenTelemetry
-exporter, and the `a2a` / `rag` / MCP layers — plus the moon-heke integration
+exporter, and the `a2a` / `rag` / MCP layers — plus the moonbitstack integration
 (serving).
 
 ## Build

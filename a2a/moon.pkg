@@ -4,8 +4,10 @@
 
 import {
   "moonbitlang/core/json",
+  "moonbitstack/moonhttp/sse",
 }
 
 import {
   "moonbitlang/core/json",
+  "moonbitstack/moonhttp/sse",
 } for "test"

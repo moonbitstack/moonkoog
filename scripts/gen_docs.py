@@ -45,7 +45,7 @@ SECTIONS = [
     ("mcp", ("mcp/client.mbt", "mcp/server.mbt", "mcp/tool.mbt", "mcp/parser.mbt"), "MCP",
      "Model Context Protocol both ways: expose this agent's tools to an MCP client, "
      "or call another server's tools as if they were local."),
-    ("a2a", ("a2a/model.mbt", "a2a/client.mbt", "a2a/server.mbt", "a2a/agent_card.mbt", "a2a/stream.mbt", "a2a/sse.mbt", "a2a/push.mbt"),
+    ("a2a", ("a2a/model.mbt", "a2a/client.mbt", "a2a/server.mbt", "a2a/agent_card.mbt", "a2a/stream.mbt", "a2a/push.mbt"),
      "A2A",
      "Agent-to-Agent: the task model, the JSON-RPC dispatcher an executor sits "
      "behind, the agent card that advertises it, and the streaming and push-"

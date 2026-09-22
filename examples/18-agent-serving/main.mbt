@@ -1,5 +1,5 @@
 ///|
-/// Serving an agent over HTTP (the moon-heke integration seam): `AgentEndpoint`
+/// Serving an agent over HTTP (the moonbitstack integration seam): `AgentEndpoint`
 /// wraps an `AIAgent` as a request handler. A well-formed body runs the agent and
 /// returns its output as JSON; `handle_sse` frames the same output as a Server-Sent
 /// Event; a malformed body is a 400. The scripted client keeps the response fixed.

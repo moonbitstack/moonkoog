@@ -140,7 +140,7 @@ pub fn stream_message(
     "params": { "message": message.to_json() },
   }
   let events : Array[StreamEvent] = []
-  for frame in parse_sse(source.open_stream(request)) {
+  for frame in @sse.events(source.open_stream(request)) {
     let response = @json.parse(frame.data)
     guard response is Object(o) else {
       raise A2AError("streamed frame must be a JSON object")
