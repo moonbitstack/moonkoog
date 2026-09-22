@@ -91,18 +91,16 @@ pub fn RetryConfig::matches(self : RetryConfig, message : String) -> Bool {
 /// grown by `backoff_multiplier` once per earlier retry, capped at `max_delay_ms`. Jitter is
 /// applied on top of this by the client, which owns the randomness.
 pub fn RetryConfig::delay_ms(self : RetryConfig, attempt : Int) -> Int {
-  let mut delay = self.initial_delay_ms.to_double()
-  for _ in 1..<attempt {
-    delay = delay * self.backoff_multiplier
-    if delay >= self.max_delay_ms.to_double() {
-      break
-    }
-  }
-  if delay > self.max_delay_ms.to_double() {
-    self.max_delay_ms
-  } else {
-    delay.to_int()
-  }
+  // The growth and the ceiling are moonpool's; the symmetric jitter on top is Koog's own
+  // and stays with the client, which is not one of the strategies moonpool names.
+  let retry = if attempt < 1 { 1 } else { attempt }
+  let schedule = @moonpool.Backoff::new(
+    base=@moondate.Span::new(millis=self.initial_delay_ms.to_int64()),
+    factor=self.backoff_multiplier,
+    cap=@moondate.Span::new(millis=self.max_delay_ms.to_int64()),
+    jitter=Rigid,
+  )
+  (schedule.ceiling(retry).nanos / 1_000_000L).to_int()
 }
 
 ///|
