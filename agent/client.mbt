@@ -64,7 +64,7 @@ impl LLMClient with fn execute_streaming(
 /// with the final text".
 pub struct MockClient {
   scripted : Array[@prompt.Message]
-  mut next : Int
+  mut next : Int32
   provider_id : @llm.LLMProvider
 }
 
@@ -72,7 +72,7 @@ pub struct MockClient {
 /// A mock that will hand back `scripted` replies in order.
 pub fn MockClient::new(
   scripted : Array[@prompt.Message],
-  provider? : @llm.LLMProvider = @llm.openai,
+  provider~ : @llm.LLMProvider = @llm.openai,
 ) -> MockClient {
   { scripted, next: 0, provider_id: provider, }
 }

@@ -63,7 +63,7 @@ pub struct AIAgent {
   tool_registry : @tools.ToolRegistry
   system_prompt : String?
   params : @prompt.LLMParams
-  max_iterations : Int
+  max_iterations : Int32
   events : EventHandler
 }
 
@@ -74,11 +74,11 @@ pub struct AIAgent {
 pub fn AIAgent::new(
   executor : &LLMClient,
   model~ : @llm.LLModel,
-  tool_registry? : @tools.ToolRegistry = @tools.ToolRegistry::new(),
+  tool_registry~ : @tools.ToolRegistry = @tools.ToolRegistry::new(),
   system_prompt? : String,
-  params? : @prompt.LLMParams = @prompt.LLMParams::default(),
-  max_iterations? : Int = 50,
-  events? : EventHandler = EventHandler::new(),
+  params~ : @prompt.LLMParams = @prompt.LLMParams::default(),
+  max_iterations~ : Int32 = 50,
+  events~ : EventHandler = EventHandler::new(),
 ) -> AIAgent {
   {
     executor,

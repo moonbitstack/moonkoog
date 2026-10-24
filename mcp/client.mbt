@@ -13,7 +13,7 @@ pub(open) trait McpTransport {
 /// An MCP client over `transport`, issuing JSON-RPC 2.0 calls with monotonically increasing ids.
 pub struct McpClient {
   transport : &McpTransport
-  mut next_id : Int
+  mut next_id : Int32
 }
 
 ///|

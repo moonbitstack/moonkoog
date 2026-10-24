@@ -37,7 +37,7 @@ test "persistence: save, list, latest-by-time, and storage snapshot round-trip" 
   // Restoring an agent storage from a checkpoint's snapshot recovers its typed values.
   let restored = AgentStorage::new()
   restored.restore(checkpoint.storage)
-  assert_eq((restored.get("step") : Int?), Some(3))
+  assert_eq((restored.get("step") : Int32?), Some(3))
   assert_eq((restored.get("goal") : String?), Some("answer"))
   assert_eq(restored.size(), 2)
 }

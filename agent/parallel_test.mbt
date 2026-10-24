@@ -81,7 +81,7 @@ async test "parallel branches interleave, and the merge still sees declaration o
 /// Sharing one prompt would make the second request carry both turns.
 async test "parallel branches run on forked conversations" {
   @async.with_task_group(_g => {
-    let asked : Array[Int] = []
+    let asked : Array[Int32] = []
     let events = @agent.EventHandler::new().on_llm_call_starting(p => {
       asked.push(p.messages.length())
     })

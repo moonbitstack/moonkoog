@@ -17,7 +17,7 @@ impl @tools.Tool for Add with fn descriptor(_self) {
 
 ///|
 impl @tools.Tool for Add with fn execute_raw(_self, args) {
-  fn field(k : String) -> Int {
+  fn field(k : String) -> Int32 {
     match args {
       Object(m) =>
         match m.get(k) {

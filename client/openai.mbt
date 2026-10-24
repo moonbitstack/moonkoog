@@ -16,7 +16,7 @@ pub fn OpenAiCompatibleClient::new(
   api_key~ : String,
   base_url~ : String,
   provider~ : @llm.LLMProvider,
-  timeout_ms? : Int = 60000,
+  timeout_ms~ : Int32 = 60000,
 ) -> OpenAiCompatibleClient {
   {
     inner: @moonllm.Client::new(api_key, base_url~, timeout_ms~),

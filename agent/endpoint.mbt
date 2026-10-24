@@ -7,7 +7,7 @@
 ///|
 /// An HTTP response: a status code and a JSON body.
 pub(all) struct AgentResponse {
-  status : Int
+  status : Int32
   body : String
 } derive(Eq, Debug)
 

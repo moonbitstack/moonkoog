@@ -94,7 +94,7 @@ impl @agent.LLMClient for LoopClient with fn execute_multiple(
 #coverage.skip
 async fn main {
   @async.with_task_group(_g => {
-    let spent : Array[Int] = []
+    let spent : Array[Int32] = []
     let events = @agent.EventHandler::new()
       .tracing(@agent.LineTrace::new(line => println(line)))
       .intercept_llm_call_starting(p => {

@@ -118,7 +118,7 @@ pub async fn[T] AIAgent::request_structured(
   self : AIAgent,
   input : String,
   schema : StructuredSchema[T],
-  max_fixes? : Int = 2,
+  max_fixes~ : Int32 = 2,
 ) -> StructuredResponse[T] {
   let builder = @prompt.PromptBuilder::new(
     params=with_schema(self.params, self.model, schema),

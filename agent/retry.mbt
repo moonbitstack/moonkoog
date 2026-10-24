@@ -16,7 +16,7 @@
 /// described message, matched case-insensitively, or an HTTP status code appearing in it.
 pub(all) enum RetryPattern {
   Substring(String)
-  Status(Int)
+  Status(Int32)
 } derive(Eq, Debug)
 
 ///|
@@ -34,9 +34,9 @@ pub fn RetryPattern::matches(self : RetryPattern, message : String) -> Bool {
 /// randomly spread either side of its nominal value to keep concurrent clients from retrying in
 /// lockstep. `patterns` is what makes an error retryable at all.
 pub(all) struct RetryConfig {
-  max_attempts : Int
-  initial_delay_ms : Int
-  max_delay_ms : Int
+  max_attempts : Int32
+  initial_delay_ms : Int32
+  max_delay_ms : Int32
   backoff_multiplier : Double
   jitter_factor : Double
   patterns : Array[RetryPattern]
@@ -90,7 +90,7 @@ pub fn RetryConfig::matches(self : RetryConfig, message : String) -> Bool {
 /// The nominal wait before retry number `attempt` (1 for the first retry): the initial delay
 /// grown by `backoff_multiplier` once per earlier retry, capped at `max_delay_ms`. Jitter is
 /// applied on top of this by the client, which owns the randomness.
-pub fn RetryConfig::delay_ms(self : RetryConfig, attempt : Int) -> Int {
+pub fn RetryConfig::delay_ms(self : RetryConfig, attempt : Int32) -> Int32 {
   // The growth and the ceiling are moonpool's; the symmetric jitter on top is Koog's own
   // and stays with the client, which is not one of the strategies moonpool names.
   let retry = if attempt < 1 { 1 } else { attempt }
@@ -117,7 +117,7 @@ pub struct RetryingClient {
   config : RetryConfig
   retryable : (Error) -> Bool
   // The wait, injectable so a test can observe the backoff without living through it.
-  wait : async (Int) -> Unit
+  wait : async (Int32) -> Unit
   rand : @random.Rand
 }
 
@@ -131,10 +131,10 @@ pub struct RetryingClient {
 /// every client jitters the same sequence.
 pub fn RetryingClient::new(
   inner : &LLMClient,
-  config? : RetryConfig = RetryConfig::default(),
-  describe? : (Error) -> String = default_describe,
+  config~ : RetryConfig = RetryConfig::default(),
+  describe~ : (Error) -> String = default_describe,
   retryable? : (Error) -> Bool,
-  wait? : async (Int) -> Unit = @async.sleep,
+  wait~ : async (Int32) -> Unit = @async.sleep,
   seed? : Bytes,
 ) -> RetryingClient {
   let retryable = match retryable {
@@ -151,7 +151,7 @@ pub fn RetryingClient::new(
 ///|
 /// The wait before retry number `attempt`, spread by `jitter_factor` either side of its nominal
 /// value and never negative.
-fn RetryingClient::backoff_ms(self : RetryingClient, attempt : Int) -> Int {
+fn RetryingClient::backoff_ms(self : RetryingClient, attempt : Int32) -> Int32 {
   let base = self.config.delay_ms(attempt).to_double()
   guard self.config.jitter_factor > 0.0 else { return base.to_int() }
   let spread = base * self.config.jitter_factor

@@ -263,7 +263,7 @@ async test "a retrying subgraph reports once, on the attempt that was kept" {
       .on_subgraph_execution_completed((name, result) => {
         log.push("sub-done:" + name + "=" + result)
       })
-    let tries : Array[Int] = []
+    let tries : Array[Int32] = []
     let inner = @agent.AIAgentStrategy::new("attempt")
       .custom_node("try", (_s, _v) => {
         tries.push(tries.length() + 1)

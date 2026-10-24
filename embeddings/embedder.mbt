@@ -15,12 +15,12 @@ pub(open) trait Embedder {
 /// by bucketing each code unit, so equal text yields equal vectors and shared characters pull two
 /// texts' vectors together — no network. `diff` is the cosine distance (`1 - cosine similarity`).
 pub struct MockEmbedder {
-  dimension : Int
+  dimension : Int32
 }
 
 ///|
 /// A fresh deterministic embedder producing `dimension`-component vectors (default 4).
-pub fn MockEmbedder::new(dimension? : Int = 4) -> MockEmbedder {
+pub fn MockEmbedder::new(dimension~ : Int32 = 4) -> MockEmbedder {
   { dimension, }
 }
 

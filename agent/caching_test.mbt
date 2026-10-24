@@ -2,7 +2,7 @@
 
 ///|
 struct CountingClient {
-  mut calls : Int
+  mut calls : Int32
   reply : String
 }
 

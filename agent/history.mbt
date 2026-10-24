@@ -7,7 +7,7 @@
 /// Which part of the history to compress (Koog's default strategies).
 pub(all) enum HistoryCompression {
   WholeHistory
-  FromLastN(Int)
+  FromLastN(Int32)
 } derive(Eq, Debug)
 
 ///|

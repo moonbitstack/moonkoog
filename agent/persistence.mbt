@@ -16,7 +16,7 @@ pub struct Checkpointer {
   store : &@persistence.PersistenceStorageProvider
   session : String
   clock : (() -> Int64)?
-  mut seq : Int
+  mut seq : Int32
 }
 
 ///|

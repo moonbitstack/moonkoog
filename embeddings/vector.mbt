@@ -32,7 +32,7 @@ fn kahan_sum(values : Array[Double]) -> Double {
 
 ///|
 /// The number of components in the vector.
-pub fn Vector::dimension(self : Vector) -> Int {
+pub fn Vector::dimension(self : Vector) -> Int32 {
   self.values.length()
 }
 

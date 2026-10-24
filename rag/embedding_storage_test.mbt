@@ -4,7 +4,7 @@
 ///|
 async test "embedding storage: embeds documents on add and ranks them on search" {
   let top : Ref[String] = { val: "", }
-  let count : Ref[Int] = { val: 0, }
+  let count : Ref[Int32] = { val: 0, }
   let top_score : Ref[Double] = { val: 0.0, }
   @async.with_task_group(g => {
     let _ = g.spawn(() => {

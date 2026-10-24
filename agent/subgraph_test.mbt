@@ -69,7 +69,7 @@ async test "a subgraph shares the run's conversation with its parent" {
 ///|
 async test "a retrying subgraph re-runs while the predicate rejects its result" {
   @async.with_task_group(_g => {
-    let tries : Array[Int] = []
+    let tries : Array[Int32] = []
     let inner = @agent.AIAgentStrategy::new("attempt")
       .custom_node("try", (_s, _v) => {
         tries.push(tries.length() + 1)
@@ -101,7 +101,7 @@ async test "a retrying subgraph re-runs while the predicate rejects its result" 
 /// last attempt's value is what flows on, so the graph can route on it.
 async test "a retrying subgraph stops at max_retries and carries the last attempt out" {
   @async.with_task_group(_g => {
-    let tries : Array[Int] = []
+    let tries : Array[Int32] = []
     let inner = @agent.AIAgentStrategy::new("attempt")
       .custom_node("try", (_s, _v) => {
         tries.push(tries.length() + 1)

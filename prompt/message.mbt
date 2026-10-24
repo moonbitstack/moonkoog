@@ -26,9 +26,9 @@ pub(all) enum MessagePart {
 /// endpoint may answer without a `usage` object at all — and an absent count is not the
 /// same as a zero one, which would read as a call that cost nothing.
 pub(all) struct ResponseMetaInfo {
-  total_tokens : Int?
-  input_tokens : Int?
-  output_tokens : Int?
+  total_tokens : Int32?
+  input_tokens : Int32?
+  output_tokens : Int32?
   model : String?
 } derive(Eq, Debug, ToJson, FromJson)
 
@@ -77,7 +77,7 @@ pub fn Message::with_meta(self : Message, meta : ResponseMetaInfo) -> Message {
 
 ///|
 /// The tokens this reply cost in total, when the provider reported them.
-pub fn Message::total_tokens(self : Message) -> Int? {
+pub fn Message::total_tokens(self : Message) -> Int32? {
   self.meta.bind(m => m.total_tokens)
 }
 
@@ -89,7 +89,7 @@ pub fn Message::tool_result(
   tool~ : String,
   output~ : String,
   id? : String,
-  is_error? : Bool = false,
+  is_error~ : Bool = false,
 ) -> Message {
   {
     role: User,
@@ -104,7 +104,7 @@ pub fn Message::tool_result(
 /// `Message.textContent`). Non-text parts contribute nothing.
 pub fn Message::text_content(
   self : Message,
-  separator? : String = "\n",
+  separator~ : String = "\n",
 ) -> String {
   let texts = []
   for part in self.parts {

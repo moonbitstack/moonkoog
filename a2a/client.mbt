@@ -21,7 +21,7 @@ pub(all) enum SendResult {
 /// A client for a remote agent over `transport`, issuing JSON-RPC 2.0 calls with increasing ids.
 pub struct A2AClient {
   transport : &A2ATransport
-  mut next_id : Int
+  mut next_id : Int32
 }
 
 ///|
@@ -80,7 +80,7 @@ pub fn A2AClient::send_message(
 pub fn A2AClient::get_task(
   self : A2AClient,
   task_id : String,
-  history_length? : Int,
+  history_length? : Int32,
 ) -> Task raise {
   let params = new_obj()
   params["id"] = task_id.to_json()

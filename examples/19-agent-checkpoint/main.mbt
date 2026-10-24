@@ -1,5 +1,5 @@
 ///|
-fn show_int(x : Int?) -> String {
+fn show_int(x : Int32?) -> String {
   match x {
     Some(n) => n.to_string()
     None => "none"

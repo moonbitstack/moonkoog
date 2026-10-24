@@ -17,7 +17,7 @@ pub(all) struct AgentCheckpoint {
   storage : Json
   node_id : String
   last_input : Json?
-  agent_iterations : Int
+  agent_iterations : Int32
   version : Int64
 } derive(Eq, Debug)
 
@@ -28,14 +28,14 @@ pub fn AgentCheckpoint::new(
   checkpoint_id~ : String,
   created_at~ : Int64,
   node_id~ : String,
-  message_history? : Array[@prompt.Message] = [],
+  message_history~ : Array[@prompt.Message] = [],
   llm_params? : @prompt.LLMParams,
   llm_model? : @llm.LLModel,
   tools? : Array[String],
-  storage? : Json = Json::object({}),
+  storage~ : Json = Json::object({}),
   last_input? : Json,
-  agent_iterations? : Int = 0,
-  version? : Int64 = 1L,
+  agent_iterations~ : Int32 = 0,
+  version~ : Int64 = 1L,
 ) -> AgentCheckpoint {
   {
     checkpoint_id,

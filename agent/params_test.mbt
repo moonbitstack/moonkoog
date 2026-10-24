@@ -6,7 +6,7 @@
 struct RecordingClient {
   seen : Array[@prompt.Prompt]
   scripted : Array[@prompt.Message]
-  mut next : Int
+  mut next : Int32
 }
 
 ///|

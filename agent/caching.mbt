@@ -19,7 +19,7 @@ pub fn CachingClient::new(inner : &LLMClient) -> CachingClient {
 
 ///|
 /// The number of distinct prompts currently cached.
-pub fn CachingClient::size(self : CachingClient) -> Int {
+pub fn CachingClient::size(self : CachingClient) -> Int32 {
   self.cache.length()
 }
 

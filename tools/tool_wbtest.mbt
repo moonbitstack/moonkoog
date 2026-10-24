@@ -21,7 +21,7 @@ impl Tool for AddTool with fn execute_raw(_self, args) {
 }
 
 ///|
-fn json_int(j : Json, key : String) -> Int {
+fn json_int(j : Json, key : String) -> Int32 {
   match j {
     Object(m) =>
       match m.get(key) {

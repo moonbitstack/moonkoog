@@ -25,14 +25,14 @@ pub(all) enum Schema {
 /// supports.
 pub(all) struct LLMParams {
   temperature : Double?
-  max_tokens : Int?
-  number_of_choices : Int?
+  max_tokens : Int32?
+  number_of_choices : Int32?
   speculation : String?
   schema : Schema?
   tool_choice : ToolChoice?
   user : String?
   include_thoughts : Bool?
-  thinking_budget : Int?
+  thinking_budget : Int32?
   additional_properties : Map[String, Json]?
 } derive(Eq, Debug, ToJson)
 
@@ -83,8 +83,8 @@ pub struct PromptBuilder {
 ///|
 /// A fresh builder.
 pub fn PromptBuilder::new(
-  id? : String = "prompt",
-  params? : LLMParams = LLMParams::default(),
+  id~ : String = "prompt",
+  params~ : LLMParams = LLMParams::default(),
 ) -> PromptBuilder {
   { messages: [], id, params, }
 }
@@ -137,7 +137,7 @@ pub fn PromptBuilder::tool_result(
   tool~ : String,
   output~ : String,
   id? : String,
-  is_error? : Bool = false,
+  is_error~ : Bool = false,
 ) -> PromptBuilder {
   self.messages.push({
     role: User,

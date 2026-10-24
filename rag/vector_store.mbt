@@ -29,7 +29,7 @@ pub(all) struct SearchResult[Doc] {
 /// (Koog `InMemoryVectorStorageBackend`). Ids are sequential (`doc-0`, `doc-1`, …) rather than random
 /// UUIDs, so the store is deterministic.
 pub struct VectorStore[Doc] {
-  mut next_id : Int
+  mut next_id : Int32
   entries : Map[String, (Doc, @embeddings.Vector)]
 }
 
@@ -75,7 +75,7 @@ pub fn[Doc] VectorStore::delete(self : VectorStore[Doc], id : String) -> Bool {
 
 ///|
 /// The number of stored documents.
-pub fn[Doc] VectorStore::size(self : VectorStore[Doc]) -> Int {
+pub fn[Doc] VectorStore::size(self : VectorStore[Doc]) -> Int32 {
   self.entries.length()
 }
 
@@ -99,9 +99,9 @@ pub fn[Doc] VectorStore::pairs(
 pub fn[Doc] rank_by_similarity(
   query : @embeddings.Vector,
   documents : Array[(Doc, @embeddings.Vector)],
-  limit? : Int = 10,
-  offset? : Int = 0,
-  min_score? : Double = 0.0,
+  limit~ : Int32 = 10,
+  offset~ : Int32 = 0,
+  min_score~ : Double = 0.0,
 ) -> Array[SearchResult[Doc]] raise {
   let hits : Array[SearchResult[Doc]] = []
   for pair in documents {

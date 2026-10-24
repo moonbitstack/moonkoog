@@ -119,7 +119,7 @@ pub(all) enum NodeKind {
   NodeSubgraphRetry(
     AIAgentStrategy,
     until~ : (NodeValue) -> Bool,
-    max_retries~ : Int
+    max_retries~ : Int32
   )
   // Several of this strategy's nodes run at once on the same input, their results merged
   // into one value (Koog's `parallel`). Each branch runs on a forked conversation so the
@@ -128,7 +128,7 @@ pub(all) enum NodeKind {
   NodeParallel(Array[String], merge~ : (Array[NodeValue]) -> NodeValue)
   // Ask the provider for `choices` candidate replies (`execute_multiple`, Koog
   // `executeMultipleChoices`) and pick one with a `ChoiceSelectionStrategy`.
-  NodeLLMRequestMultiple(&ChoiceSelectionStrategy, choices~ : Int)
+  NodeLLMRequestMultiple(&ChoiceSelectionStrategy, choices~ : Int32)
   // Run the conversation so far through the provider's safety endpoint
   // (`LLMClient.moderate`), carrying the verdict on as a `VModeration`.
   NodeModerate
@@ -138,7 +138,7 @@ pub(all) enum NodeKind {
   // Request a reply constrained to a schema and carry the parsed JSON on as a `VJson`
   // (Koog `requestLLMStructured`). A reply that does not parse is re-asked up to `fixes`
   // times, Koog's `StructureFixingParser`.
-  NodeLLMRequestStructured(StructuredSchema[Json], fixes~ : Int)
+  NodeLLMRequestStructured(StructuredSchema[Json], fixes~ : Int32)
 }
 
 ///|
@@ -180,7 +180,7 @@ pub struct AIAgentStrategy {
   custom : Map[String, async (NodeSession, NodeValue) -> NodeValue]
   start : String
   finish : String
-  max_steps : Int
+  max_steps : Int32
 }
 
 ///|
@@ -195,7 +195,7 @@ pub let finish_node : String = "__finish__"
 /// edges added. `max_steps` defaults to a generous backstop.
 pub fn AIAgentStrategy::new(
   name : String,
-  max_steps? : Int = 1000,
+  max_steps~ : Int32 = 1000,
 ) -> AIAgentStrategy {
   {
     name,
@@ -253,7 +253,7 @@ pub fn AIAgentStrategy::subgraph_retry(
   name : String,
   strategy : AIAgentStrategy,
   until~ : (NodeValue) -> Bool,
-  max_retries? : Int = 2,
+  max_retries~ : Int32 = 2,
 ) -> AIAgentStrategy {
   self.nodes[name] = NodeSubgraphRetry(strategy, until~, max_retries~)
   self
@@ -281,7 +281,7 @@ pub fn AIAgentStrategy::edge(
   self : AIAgentStrategy,
   from : String,
   to : String,
-  condition? : EdgeCondition = Always,
+  condition~ : EdgeCondition = Always,
   transform? : (NodeValue) -> NodeValue,
 ) -> AIAgentStrategy {
   self.edges.push({ from, to, condition, transform, })
@@ -292,7 +292,7 @@ pub fn AIAgentStrategy::edge(
 /// Koog's `singleRunStrategy` expressed as a graph: request the LLM; on a
 /// plain-text reply finish, on a tool-call reply execute the tools, feed the
 /// results back, and request again — looping until the model answers in text.
-pub fn single_run_strategy(max_steps? : Int = 1000) -> AIAgentStrategy {
+pub fn single_run_strategy(max_steps~ : Int32 = 1000) -> AIAgentStrategy {
   AIAgentStrategy::new("single_run", max_steps~)
   .node("llm_request", NodeLLMRequest)
   .node("execute_tools", NodeExecuteTools)
@@ -310,7 +310,7 @@ pub fn single_run_strategy(max_steps? : Int = 1000) -> AIAgentStrategy {
 /// executed, but a plain-text reply is nudged ("call a tool instead of chatting") and the
 /// LLM re-requested until it calls a tool; the loop finishes when the model calls the exit
 /// tool (`__exit__`), whose edge carries "Chat finished" as the result.
-pub fn chat_agent_strategy(max_steps? : Int = 1000) -> AIAgentStrategy {
+pub fn chat_agent_strategy(max_steps~ : Int32 = 1000) -> AIAgentStrategy {
   let nudge = "Don't reply with plain text. Call one of the available tools instead."
   AIAgentStrategy::new("chat", max_steps~)
   .node("llm_request", NodeLLMRequest)
@@ -337,9 +337,9 @@ pub fn chat_agent_strategy(max_steps? : Int = 1000) -> AIAgentStrategy {
 /// next action; a plain-text reply finishes. Built on custom nodes carrying a reasoning-step
 /// counter in the session's per-run store.
 pub fn react_strategy(
-  reasoning_interval? : Int = 1,
-  reasoning_prompt? : String = "Please give your thoughts about the task and plan the next steps.",
-  max_steps? : Int = 1000,
+  reasoning_interval~ : Int32 = 1,
+  reasoning_prompt~ : String = "Please give your thoughts about the task and plan the next steps.",
+  max_steps~ : Int32 = 1000,
 ) -> AIAgentStrategy {
   let interval = if reasoning_interval > 0 { reasoning_interval } else { 1 }
   AIAgentStrategy::new("re_act", max_steps~)
@@ -392,8 +392,8 @@ struct StrategyContext {
   storage : AgentStorage
   // The LLM-call budget. A cell rather than a field so a forked branch and every nested
   // subgraph spend the one budget the agent was given, not a copy each.
-  llm_calls : Ref[Int]
-  max_iterations : Int
+  llm_calls : Ref[Int32]
+  max_iterations : Int32
   stop : RunHandle?
   checkpoint : Checkpointer?
 }
@@ -815,7 +815,7 @@ async fn run_graph(
   strategy : AIAgentStrategy,
   input : NodeValue,
   at? : String,
-  top? : Bool = false,
+  top~ : Bool = false,
 ) -> NodeValue {
   for step = 0, current = at.unwrap_or(strategy.start), value = input; step <
      strategy.max_steps; {

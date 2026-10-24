@@ -18,15 +18,15 @@ fn describe_flaky(error : Error) -> String {
 
 ///|
 struct FlakyClient {
-  mut calls : Int
-  fail_times : Int
+  mut calls : Int32
+  fail_times : Int32
   message : String
 }
 
 ///|
 fn FlakyClient::new(
-  fail_times~ : Int,
-  message? : String = "503 service temporarily unavailable",
+  fail_times~ : Int32,
+  message~ : String = "503 service temporarily unavailable",
 ) -> FlakyClient {
   { calls: 0, fail_times, message, }
 }

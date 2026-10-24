@@ -11,7 +11,7 @@ pub suberror McpError {
 }
 
 ///|
-let max_depth : Int = 30
+let max_depth : Int32 = 30
 
 ///|
 /// Parse an MCP tool definition into a `ToolDescriptor` (Koog `DefaultMcpToolDescriptorParser.parse`).
@@ -81,7 +81,7 @@ fn parse_parameters(
 fn parse_type(
   element : Map[String, Json],
   defs : Map[String, Json]?,
-  depth : Int,
+  depth : Int32,
 ) -> @tools.ToolParameterType raise {
   if depth > max_depth {
     raise McpError("maximum recursion depth exceeded (circular $ref?)")
@@ -145,7 +145,7 @@ fn parse_type(
 fn parse_object(
   element : Map[String, Json],
   defs : Map[String, Json]?,
-  depth : Int,
+  depth : Int32,
 ) -> @tools.ToolParameterType raise {
   let props : Array[@tools.ToolParameterDescriptor] = []
   if element.get("properties") is Some(Object(p)) {
@@ -278,7 +278,7 @@ fn strip_prefix(s : String, prefix : String) -> String {
 
 ///|
 /// `s` with its first `n` characters dropped.
-fn drop_n(s : String, n : Int) -> String {
+fn drop_n(s : String, n : Int32) -> String {
   let sb = StringBuilder()
   let mut i = 0
   for c in s {

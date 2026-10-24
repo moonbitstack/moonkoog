@@ -2,7 +2,7 @@
 /// A value the model is asked to produce as structured JSON.
 struct Person {
   name : String
-  age : Int
+  age : Int32
 } derive(Eq, Debug)
 
 ///|

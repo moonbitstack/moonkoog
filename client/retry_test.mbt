@@ -1,7 +1,7 @@
 ///|
 /// A client that fails every call with a 503, to see what the `retrying` wrapper does with it.
 struct AlwaysFailing {
-  mut calls : Int
+  mut calls : Int32
 }
 
 ///|

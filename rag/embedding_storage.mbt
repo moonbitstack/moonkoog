@@ -43,9 +43,9 @@ pub async fn[Doc] EmbeddingStorage::add(
 pub async fn[Doc] EmbeddingStorage::search(
   self : EmbeddingStorage[Doc],
   query_text : String,
-  limit? : Int = 10,
-  offset? : Int = 0,
-  min_score? : Double = 0.0,
+  limit~ : Int32 = 10,
+  offset~ : Int32 = 0,
+  min_score~ : Double = 0.0,
 ) -> Array[SearchResult[Doc]] {
   let query = self.embedder.embed(query_text)
   rank_by_similarity(query, self.store.pairs(), limit~, offset~, min_score~)
@@ -71,6 +71,6 @@ pub fn[Doc] EmbeddingStorage::delete(
 
 ///|
 /// The number of stored documents.
-pub fn[Doc] EmbeddingStorage::size(self : EmbeddingStorage[Doc]) -> Int {
+pub fn[Doc] EmbeddingStorage::size(self : EmbeddingStorage[Doc]) -> Int32 {
   self.store.size()
 }

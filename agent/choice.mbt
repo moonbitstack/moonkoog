@@ -75,7 +75,7 @@ pub impl ChoiceSelectionStrategy for LLMChoiceSelector with fn choose(
 ///|
 /// The candidate index a judge's reply names: the first integer in the text, clamped into
 /// range (0 if none is found).
-fn choice_index(text : String, count : Int) -> Int {
+fn choice_index(text : String, count : Int32) -> Int32 {
   let mut num = 0
   let mut found = false
   for c in text {

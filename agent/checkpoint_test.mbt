@@ -61,7 +61,7 @@ async test "node storage: a value read at the wrong type is absent, not a crash"
       })
       .custom_node("read", (s, _v) => {
         @agent.VText(
-          ((s.get("plan") : Int?) is Some(_)).to_string() +
+          ((s.get("plan") : Int32?) is Some(_)).to_string() +
           "/" +
           s.storage().contains("plan").to_string(),
         )
@@ -80,18 +80,18 @@ async test "node storage: a value read at the wrong type is absent, not a crash"
 /// A graph that counts its visits in storage and gives up on the third, so a test can stop a
 /// run in the middle and resume it.
 fn counting_strategy(
-  fail_at~ : Int,
+  fail_at~ : Int32,
   visits~ : Array[String],
 ) -> @agent.AIAgentStrategy {
   @agent.AIAgentStrategy::new("counting")
   .custom_node("one", (s, v) => {
     visits.push("one")
-    s.set("n", (s.get("n") : Int?).unwrap_or(0) + 1)
+    s.set("n", (s.get("n") : Int32?).unwrap_or(0) + 1)
     v
   })
   .custom_node("two", (s, v) => {
     visits.push("two")
-    let n = (s.get("n") : Int?).unwrap_or(0)
+    let n = (s.get("n") : Int32?).unwrap_or(0)
     if n >= fail_at {
       return @agent.VText("stopped at " + n.to_string())
     }
@@ -100,7 +100,7 @@ fn counting_strategy(
   })
   .custom_node("three", (s, _v) => {
     visits.push("three")
-    @agent.VText("done with " + (s.get("n") : Int?).unwrap_or(0).to_string())
+    @agent.VText("done with " + (s.get("n") : Int32?).unwrap_or(0).to_string())
   })
   .edge(@agent.start_node, "one")
   .edge("one", "two")
@@ -133,7 +133,7 @@ async test "checkpointing: a run snapshots every node boundary" {
     let at_three = cps[3]
     let restored = @agent.AgentStorage::new()
     restored.restore(at_three.storage)
-    assert_eq((restored.get("n") : Int?), Some(1))
+    assert_eq((restored.get("n") : Int32?), Some(1))
     assert_eq(at_three.last_input, Some(@agent.VText("two saw 1").to_json()))
   })
 }
@@ -169,7 +169,7 @@ async test "checkpointing: a checkpoint taken before a write does not see it" {
     let read_n = (cp : @persistence.AgentCheckpoint) => {
       let restored = @agent.AgentStorage::new()
       restored.restore(cp.storage)
-      (restored.get("n") : Int?)
+      (restored.get("n") : Int32?)
     }
     // Before the write, twice: an empty store both times. Only the boundary after it sees 233.
     assert_eq(read_n(cps[0]), None)

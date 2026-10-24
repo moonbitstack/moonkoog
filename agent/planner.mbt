@@ -159,7 +159,7 @@ pub fn LLMPlanner::is_plan_completed(
 pub async fn LLMPlanner::run(
   self : LLMPlanner,
   input : String,
-  max_steps? : Int = 32,
+  max_steps~ : Int32 = 32,
 ) -> String {
   let mut state = input
   let mut plan : SimplePlan? = None
@@ -235,7 +235,7 @@ fn strip_completed(body : String) -> (Bool, String) {
 
 ///|
 /// The text with its first `n` characters dropped.
-fn drop_n(s : String, n : Int) -> String {
+fn drop_n(s : String, n : Int32) -> String {
   let sb = StringBuilder()
   let mut i = 0
   for c in s {

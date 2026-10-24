@@ -65,7 +65,7 @@ pub fn AgentStorage::clear(self : AgentStorage) -> Unit {
 
 ///|
 /// The number of stored entries.
-pub fn AgentStorage::size(self : AgentStorage) -> Int {
+pub fn AgentStorage::size(self : AgentStorage) -> Int32 {
   self.entries.length()
 }
 

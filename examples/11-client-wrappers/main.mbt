@@ -17,7 +17,7 @@ fn one_prompt() -> @prompt.Prompt {
 ///|
 /// A client that counts how many times it is actually called through.
 struct Counting {
-  mut calls : Int
+  mut calls : Int32
 }
 
 ///|
@@ -73,8 +73,8 @@ fn describe_transient(error : Error) -> String {
 ///|
 /// A client that fails its first `fail_times` calls with `message`, then succeeds.
 struct Flaky {
-  mut calls : Int
-  fail_times : Int
+  mut calls : Int32
+  fail_times : Int32
   message : String
 }
 

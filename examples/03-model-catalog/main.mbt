@@ -1,5 +1,5 @@
 ///|
-fn or0(x : Int?) -> Int {
+fn or0(x : Int32?) -> Int32 {
   match x {
     Some(n) => n
     None => 0

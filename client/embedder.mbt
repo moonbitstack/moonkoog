@@ -18,7 +18,7 @@ pub fn LLMEmbedder::new(
   api_key~ : String,
   base_url~ : String,
   model~ : String,
-  timeout_ms? : Int = 60000,
+  timeout_ms~ : Int32 = 60000,
 ) -> LLMEmbedder {
   { inner: @moonllm.Client::new(api_key, base_url~, timeout_ms~), model, }
 }

@@ -16,7 +16,7 @@ pub struct MultiLLMClient {
 /// An empty router. `default_provider` is what the router reports as its own
 /// `provider()` (Koog executors are provider-agnostic; a value is still required).
 pub fn MultiLLMClient::new(
-  default_provider? : @llm.LLMProvider = @llm.openai,
+  default_provider~ : @llm.LLMProvider = @llm.openai,
 ) -> MultiLLMClient {
   { clients: Map([]), fallback: None, default_provider, }
 }

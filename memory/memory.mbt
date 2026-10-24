@@ -45,7 +45,7 @@ pub fn Fact::concept(self : Fact) -> Concept {
 /// for ordering when subjects overlap. The predefined subjects mirror Koog's.
 pub(all) struct MemorySubject {
   name : String
-  priority : Int
+  priority : Int32
 } derive(Eq, Debug)
 
 ///|

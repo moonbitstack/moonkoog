@@ -224,9 +224,9 @@ pub struct AnthropicClient {
 /// a compatible gateway to override.
 pub fn AnthropicClient::new(
   api_key~ : String,
-  base_url? : String = "https://api.anthropic.com/v1",
-  version? : String = "2023-06-01",
-  timeout_ms? : Int = 60000,
+  base_url~ : String = "https://api.anthropic.com/v1",
+  version~ : String = "2023-06-01",
+  timeout_ms~ : Int32 = 60000,
 ) -> AnthropicClient {
   let inner = @moonllm.ClientBuilder::new()
     .api_key(api_key)

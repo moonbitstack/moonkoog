@@ -27,7 +27,7 @@ pub fn describe_llm_error(error : Error) -> String {
 /// an `Error`'s type name.
 pub fn retrying(
   inner : &@agent.LLMClient,
-  config? : @agent.RetryConfig = @agent.RetryConfig::default(),
+  config~ : @agent.RetryConfig = @agent.RetryConfig::default(),
 ) -> @agent.RetryingClient {
   @agent.RetryingClient::new(inner, config~, describe=describe_llm_error)
 }

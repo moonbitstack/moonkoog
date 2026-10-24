@@ -1,6 +1,6 @@
 ///|
 /// Count occurrences of `v` in `xs`.
-fn count_of(xs : Array[String], v : String) -> Int {
+fn count_of(xs : Array[String], v : String) -> Int32 {
   let mut n = 0
   for x in xs {
     if x == v {

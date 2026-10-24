@@ -70,8 +70,8 @@ pub(all) struct LLModel {
   provider : LLMProvider
   id : String
   capabilities : Array[LLMCapability]
-  context_length : Int?
-  max_output_tokens : Int?
+  context_length : Int32?
+  max_output_tokens : Int32?
 } derive(Eq, Debug)
 
 ///|

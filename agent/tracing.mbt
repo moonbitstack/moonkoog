@@ -109,7 +109,7 @@ pub impl TraceWriter for LineTrace with fn write(self, event) {
 pub fn EventHandler::tracing(
   self : EventHandler,
   writer : &TraceWriter,
-  filter? : (TraceEvent) -> Bool = _ => true,
+  filter~ : (TraceEvent) -> Bool = _ => true,
 ) -> EventHandler {
   let emit = (kind, name, detail) => {
     let event : TraceEvent = { kind, name, detail, }
