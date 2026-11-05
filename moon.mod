@@ -17,5 +17,8 @@ import {
   "moonbitstack/moonhttp@0.10.0",
   "moonbitstack/moondate@0.1.0",
   "moonbitlang/async@0.20.3",
-  "DC-Z-lab/moonllm@0.1.0",
+  "moonbitstack/moonmuse@0.1.0",
+  "moonbitstack/moonstate@0.1.0",
 }
+
+source = "src"

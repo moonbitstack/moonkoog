@@ -1,0 +1,9 @@
+// The tool model — Koog 1.1.1 `agents-tools`. The JSON-schema descriptor model
+// (ToolParameterType / ToolDescriptor), the Tool contract (MoonBit has no
+// reflection, so the schema is an explicit descriptor rather than derived from an
+// arg type), and the by-name ToolRegistry. Pure, every target.
+
+import {
+  "moonbitstack/moonmuse/toolbox",
+  "moonbitlang/core/string",
+}

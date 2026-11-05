@@ -1,4 +1,0 @@
-// Agent memory (← Koog agents-features-memory): concepts, facts, subjects, and
-// scopes, saved and loaded through a provider with an in-memory implementation.
-// Concept / Fact / FactType are transcribed from the koog source; the provider is
-// the AgentMemoryProvider save/load contract. Pure logic, all backends.

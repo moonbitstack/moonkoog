@@ -1,0 +1,28 @@
+// The agent core — Koog 1.1.1 `agents-core` + the `prompt-executor-clients`
+// contract. Native (the LLM client is async): the LLMClient trait, a scripted
+// MockClient for deterministic tests, the AIAgent, and its singleRunStrategy
+// tool-calling loop. The async runtime (moonbitlang/async) is a library
+// dependency: the strategy graph's parallel node runs its branches through it.
+supported_targets = "native"
+
+import {
+  "moonbitstack/moondate",
+  "moonbitstack/moonpool",
+  "moonbitstack/moonhttp/sse",
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonmuse/models",
+  "moonbitstack/moonmuse/toolbox",
+  "moonbitstack/moonstate",
+  "moonbitlang/async",
+  "moonbitlang/core/json",
+  "moonbitlang/core/random",
+}
+
+import {
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonmuse/models",
+  "moonbitstack/moonmuse/toolbox",
+  "moonbitstack/moonstate",
+  "moonbitlang/async",
+  "moonbitlang/core/json",
+} for "test"

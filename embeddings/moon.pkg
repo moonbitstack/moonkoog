@@ -1,9 +1,0 @@
-// Text-embedding vectors and the embedder contract — Koog `embeddings-base`. Native (the embedder
-// is async); the `Vector` similarity math (magnitude, dot product, cosine, Euclidean, Kahan-summed)
-// is the numerical core RAG builds on.
-supported_targets = "native"
-
-// The async runtime backs the `async test` that drives the async `embed`.
-import {
-  "moonbitlang/async",
-} for "test"

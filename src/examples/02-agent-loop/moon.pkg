@@ -1,0 +1,11 @@
+supported_targets = "native"
+
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonmuse/models",
+  "moonbitstack/moonkoog/tools",
+  "moonbitlang/async",
+}
+
+pkgtype(kind: "executable")

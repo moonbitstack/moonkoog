@@ -1,3 +1,0 @@
-// The LLM model catalog — Koog 1.1.1 `prompt-llm`. Pure value types, every
-// target: LLMProvider (an open identity, so named constants not a closed enum),
-// LLMCapability, and LLModel with its capability check.

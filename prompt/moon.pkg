@@ -1,7 +1,0 @@
-// The prompt/message model — Koog 1.1.1 `prompt-model`. Pure value types, every
-// target: the Message sum (parts-based, three roles), the immutable Prompt, and a
-// fluent PromptBuilder (MoonBit has no receiver-lambda DSL, so the builder chains).
-
-import {
-  "moonbitlang/core/json",
-}
