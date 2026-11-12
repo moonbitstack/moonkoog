@@ -28,6 +28,7 @@ DOCUMENTS = [
     ROOT / "README.md",
     ROOT / "docs" / "skills" / "moonkoog" / "SKILL.md",
     ROOT / "docs" / "guide.html",
+    ROOT / "docs" / "index.html",
 ]
 
 # The packages a snippet may reach for, by the alias it would use. Only the ones a document
@@ -66,7 +67,9 @@ def blocks(path: Path) -> list[tuple[str, bool]]:
         for match in re.finditer(
             r'<pre(?P<attrs>[^>]*)><code>(?P<body>.*?)</code></pre>', text, re.S
         ):
-            if "shell" in match.group("attrs"):
+            # `shell` is a command line and `excerpt` is a fragment of an example whose whole
+            # form is in the guide; neither is a snippet of its own.
+            if "shell" in match.group("attrs") or "excerpt" in match.group("attrs"):
                 continue
             body = html.unescape(match.group("body"))
             found.append((body, "native" in match.group("attrs")))

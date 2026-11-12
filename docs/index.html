@@ -61,7 +61,7 @@
 
   <h2 class="section" id="first"><span class="at">#</span>First run</h2>
   <p class="lede">A provider, a model and one question. The provider here is scripted, which is what a test — or this page — uses when there is no key.</p>
-<pre><code>let provider = @fake.Fake::text("A state graph is a program made of nodes.")
+<pre class="excerpt"><code>let provider = @fake.Fake::text("A state graph is a program made of nodes.")
 let agent = @moonkoog.create_agent(
   provider,
   @moonkoog.AgentConfig::new("scripted").with_instructions("Answer in one sentence."),
@@ -71,7 +71,7 @@ println(agent.run("What is a state graph?"))</code></pre>
 
   <h2 class="section" id="tools"><span class="at">#</span>Tools</h2>
   <p class="lede">A tool states its schema and its body. The model asks for it by name, the run executes it, the result goes back into the conversation.</p>
-<pre><code>let agent = @moonkoog.create_agent(
+<pre class="excerpt"><code>let agent = @moonkoog.create_agent(
   provider,
   @moonkoog.AgentConfig::new("scripted").with_tools([@moonkoog.calculator()]),
 )
@@ -80,7 +80,7 @@ println(agent.run("What is 6 times 7?"))</code></pre>
 
   <h2 class="section" id="pipeline"><span class="at">#</span>The pipeline</h2>
   <p class="lede">Middleware wraps the calls a run makes. This run retries a gateway error, caps how many calls it may spend, and scrubs an address before the provider sees it.</p>
-<pre><code>let agent = @moonkoog.create_agent(
+<pre class="excerpt"><code>let agent = @moonkoog.create_agent(
   provider,
   @moonkoog.AgentConfig::new("scripted")
   .with_middleware(@middleware.ModelRetry::new(attempts=2, base_ms=1))
@@ -91,7 +91,7 @@ println(agent.run("What is 6 times 7?"))</code></pre>
 
   <h2 class="section" id="teams"><span class="at">#</span>Teams</h2>
   <p class="lede">A member of a team is a nested graph over the same conversation. It hands the conversation on with a tool, and the team's router follows.</p>
-<pre><code>let team = @moonkoog.create_agent(
+<pre class="excerpt"><code>let team = @moonkoog.create_agent(
   provider,
   @moonkoog.swarm(@moonkoog.AgentConfig::new("scripted", name="team"), [researcher, writer]),
 )
