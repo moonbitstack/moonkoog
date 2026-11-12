@@ -1,128 +1,150 @@
 ///|
-/// A stateless tool: add two integers from the JSON args.
-struct AddTool {}
-
-///|
-impl @toolbox.Tool for AddTool with fn descriptor(_self) {
-  {
-    name: "add",
-    description: "add two integers a and b",
-    required_parameters: [
-      { name: "a", description: "first addend", ptype: @toolbox.TInteger, },
-      { name: "b", description: "second addend", ptype: @toolbox.TInteger, },
-    ],
-    optional_parameters: [],
-  }
-}
-
-///|
-impl @toolbox.Tool for AddTool with fn execute_raw(_self, args) {
-  (json_int(args, "a") + json_int(args, "b")).to_string()
-}
-
-///|
-fn json_int(j : Json, key : String) -> Int32 {
-  match j {
-    Object(m) =>
-      match m.get(key) {
-        Some(Number(n, ..)) => n.to_int()
-        _ => 0
+/// A tool that adds the two integers in its arguments.
+fn adder() -> @agent.ToolSpec {
+  @agent.ToolSpec::new(
+    name="add",
+    description="Add a and b.",
+    schema=Json::object(
+      Map([
+        ("type", Json::string("object")),
+        (
+          "properties",
+          Json::object(
+            Map([
+              ("a", Json::object(Map([("type", Json::string("number"))]))),
+              ("b", Json::object(Map([("type", Json::string("number"))]))),
+            ]),
+          ),
+        ),
+      ]),
+    ),
+    run=args => {
+      let inner = match args {
+        Object(fields) => fields
+        _ => Map([])
       }
-    _ => 0
-  }
-}
-
-///|
-/// The output of the last tool result carried in the prompt, if any.
-fn find_tool_result(p : @moonmuse.Prompt) -> String? {
-  let mut found : String? = None
-  for msg in p.messages {
-    for part in msg.parts {
-      if part is @moonmuse.ToolResult(output~, ..) {
-        found = Some(output)
+      let number = key => {
+        match inner.get(key) {
+          Some(Number(value, ..)) => value
+          _ => 0.0
+        }
       }
-    }
+      (number("a") + number("b")).to_string()
+    },
+  )
+}
+
+///|
+/// A reply that asks for one tool call.
+fn call_reply(
+  name : String,
+  args : Json,
+  id~ : String = "call_1",
+) -> @moonmuse.Reply {
+  @moonmuse.Reply::new(
+    @moonmuse.Message::new(Assistant, [@moonmuse.Part::call(id, name, args)]),
+    finish=@moonmuse.Finish::Calls,
+  )
+}
+
+///|
+/// A reply that answers in prose.
+fn text_reply(text : String) -> @moonmuse.Reply {
+  @moonmuse.Reply::new(@moonmuse.Message::assistant(text))
+}
+
+///|
+async test "single run asks, calls the tool, and answers" {
+  let provider = @fake.Fake::new([
+    call_reply(
+      "add",
+      Json::object(Map([("a", Json::number(2.0)), ("b", Json::number(40.0))])),
+    ),
+    text_reply("42"),
+  ])
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model").with_tools([adder()]),
+  )
+  let answer = agent.run("what is 2 + 40?")
+  assert_eq(answer, "42")
+  assert_eq(provider.hits(), 2)
+  let second = provider.seen()[1].messages
+  assert_eq(second[second.length() - 1].role is Tool, true)
+}
+
+///|
+async test "the toolbox reaches the model as a tool descriptor" {
+  let provider = @fake.Fake::text("done")
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model").with_tools([adder()]),
+  )
+  let _ = agent.run("hello")
+  let tools = provider.seen()[0].tools
+  assert_eq(tools.length(), 1)
+  assert_eq(tools[0].name, "add")
+}
+
+///|
+async test "the iteration cap stops a loop that never answers" {
+  let provider = @fake.Fake::calls("add", Json::object(Map([])))
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model")
+    .with_tools([adder()])
+    .with_limits(@agent.default_limits.with_iterations(3)),
+  )
+  let outcome = Ok(agent.run("loop")) catch { error => Err(error) }
+  match outcome {
+    Ok(_) => fail("the run should have hit the cap")
+    Err(@agent.Exhausted(limit~)) => assert_eq(limit, 3)
+    Err(other) => fail("unexpected " + @agent.describe(other))
   }
-  found
 }
 
 ///|
-/// A stateless client that closes the loop by reading the conversation: when a
-/// tool result is present it answers with it, otherwise it requests the `add`
-/// tool. A passing assertion therefore proves the tool ran AND its result was fed
-/// back into the next request — the whole singleRunStrategy wiring, not just that
-/// a canned string came back.
-struct LoopClient {}
-
-///|
-impl @agent.LLMClient for LoopClient with fn execute(
-  _self,
-  prompt~,
-  model~,
-  tools~,
-) {
-  let _ = model
-  let _ = tools
-  match find_tool_result(prompt) {
-    Some(output) => @moonmuse.Message::assistant("The answer is " + output)
-    None =>
-      {
-        role: @moonmuse.Assistant,
-        parts: [
-          @moonmuse.ToolCall(id=Some("c1"), tool="add", args={ "a": 2, "b": 3 }),
-        ],
-        finish_reason: None,
-        meta: None,
-      }
+async test "a provider failure surfaces as a refusal" {
+  let provider = @fake.Fake::failing(500)
+  let agent = @agent.create_agent(provider, @agent.AgentConfig::new("test-model"))
+  let outcome = Ok(agent.run("hello")) catch { error => Err(error) }
+  match outcome {
+    Ok(_) => fail("the run should have failed")
+    Err(@agent.Refused(reason~)) => assert_eq(reason.contains("500"), true)
+    Err(other) => fail("unexpected " + @agent.describe(other))
   }
 }
 
 ///|
-impl @agent.LLMClient for LoopClient with fn provider(_self) {
-  @models.openai
+async test "a missing tool is reported to the model, not raised" {
+  let provider = @fake.Fake::new([
+    call_reply("nope", Json::object(Map([]))),
+    text_reply("sorry"),
+  ])
+  let agent = @agent.create_agent(provider, @agent.AgentConfig::new("test-model"))
+  assert_eq(agent.run("use a tool"), "sorry")
 }
 
 ///|
-impl @agent.LLMClient for LoopClient with fn moderate(_self, prompt~, model~) {
-  let _ = prompt
-  let _ = model
-  @agent.ModerationResult::safe()
+async test "the system message is seeded once" {
+  let provider = @fake.Fake::text("ok")
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model").with_instructions("be brief"),
+  )
+  let _ = agent.run("hello")
+  let messages = provider.seen()[0].messages
+  assert_eq(messages.length(), 2)
+  assert_eq(messages[0].role, @moonmuse.System)
+  assert_eq(messages[0].text_content(), "be brief")
 }
 
 ///|
-impl @agent.LLMClient for LoopClient with fn execute_multiple(
-  self,
-  prompt~,
-  model~,
-  tools~,
-) {
-  [@agent.LLMClient::execute(self, prompt~, model~, tools~)]
-}
-
-///|
-async test "agent runs the singleRunStrategy loop end to end: request, execute tool, feed back, finish" {
-  @async.with_task_group(_g => {
-    let registry = @toolbox.ToolRegistry::new().add(AddTool::{ })
-    let agent = @agent.AIAgent::new(
-      LoopClient::{ },
-      model=@models.deepseek_v4_flash,
-      tool_registry=registry,
-      system_prompt="you can add",
-    )
-    let out = agent.run("what is 2+3?") catch {
-      e => fail("agent raised: " + e.to_string())
-    }
-    // Break any link — the tool step, the append, the loop-back — and this fails.
-    assert_eq(out, "The answer is 5")
-  })
-}
-
-///|
-async test "agent finishes immediately when the first reply is plain text" {
-  @async.with_task_group(_g => {
-    let mock = @agent.MockClient::new([@moonmuse.Message::assistant("hi there")])
-    let agent = @agent.AIAgent::new(mock, model=@models.deepseek_v4_flash)
-    let out = agent.run("hello") catch { e => fail(e.to_string()) }
-    assert_eq(out, "hi there")
-  })
+async test "a checkpointed thread can be read back" {
+  let provider = @fake.Fake::text("remembered")
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(provider, @agent.AgentConfig::new("test-model"), saver~)
+  let _ = agent.run("first", thread="t1")
+  let snapshot = agent.state("t1").unwrap()
+  assert_eq(snapshot.state.text(), "remembered")
 }

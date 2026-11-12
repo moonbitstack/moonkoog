@@ -1,9 +1,0 @@
-supported_targets = "native"
-
-import {
-  "moonbitstack/moonkoog/mcp",
-  "moonbitstack/moonkoog/tools",
-  "moonbitlang/core/json",
-}
-
-pkgtype(kind: "executable")

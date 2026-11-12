@@ -1,76 +1,101 @@
-// History compression (Koog `HistoryCompressionStrategy` / `DefaultHistoryCompressionStrategies`):
-// replace older conversation with an LLM-generated TLDR summary so a long run stays inside the
-// model's context window. `WholeHistory` summarises everything into one message; `FromLastN`
-// summarises all but the last N messages and keeps those verbatim.
-
 ///|
-/// Which part of the history to compress (Koog's default strategies).
-pub(all) enum HistoryCompression {
-  WholeHistory
-  FromLastN(Int32)
-} derive(Eq, Debug)
-
-///|
-/// Compresses a conversation with `client` / `model`.
-pub struct HistoryCompressor {
-  client : &LLMClient
-  model : @models.LLModel
+/// What a summarising call produced.
+priv enum Summary {
+  Written(String)
+  Unavailable(reason~ : String)
 }
 
 ///|
-/// A compressor backed by `client` / `model`.
-pub fn HistoryCompressor::new(
-  client : &LLMClient,
-  model : @models.LLModel,
-) -> HistoryCompressor {
-  { client, model, }
+/// The result of compressing a conversation: the messages to carry on with, or why the summary
+/// could not be written.
+pub(all) enum Compressed {
+  Done(Array[@moonmuse.Message])
+  Refused(reason~ : String)
 }
 
 ///|
-/// Compress `messages` per `strategy`, returning the new message list: the summary first, then
-/// any kept messages. A list with nothing to summarise is returned unchanged.
-pub async fn HistoryCompressor::compress(
-  self : HistoryCompressor,
+/// Fold older conversation into a summary, keeping the system message and the newest turns.
+///
+/// A run that goes on long enough meets the model's context window; compressing is cheaper than
+/// failing, and the summary keeps the thread of the work. `Whole` summarises everything but the
+/// system message, `FromLast(n)` keeps the last `n` messages word for word.
+pub async fn compress(
+  runtime : Runtime,
+  context : RunContext,
   messages : Array[@moonmuse.Message],
-  strategy : HistoryCompression,
-) -> Array[@moonmuse.Message] {
+  policy : HistoryPolicy,
+) -> Compressed {
   let total = messages.length()
-  let keep = match strategy {
-    WholeHistory => 0
-    FromLastN(n) => if n < total { n } else { total }
+  guard total > 0 else { return Done(messages) }
+  let (head, body) = split_system(messages)
+  let keep = match policy {
+    Whole => 0
+    FromLast(count) => if count < body.length() { count } else { body.length() }
   }
-  let cut = total - keep
-  guard cut > 0 else { return messages }
-  let to_summarize : Array[@moonmuse.Message] = []
-  for i in 0..<cut {
-    to_summarize.push(messages[i])
+  let cut = body.length() - keep
+  guard cut > 0 else { return Done(messages) }
+  let older : Array[@moonmuse.Message] = []
+  for index in 0..<cut {
+    older.push(body[index])
   }
-  let out = [self.summarize(to_summarize)]
-  for i in cut..<total {
-    out.push(messages[i])
+  let summary = match summarize(runtime, context, older) {
+    Written(text) => text
+    Unavailable(reason~) => return Refused(reason~)
   }
-  out
+  let out = head.copy()
+  out.push(
+    @moonmuse.Message::assistant(
+      "Summary of the earlier conversation: " + summary,
+    ),
+  )
+  for index in cut..<body.length() {
+    out.push(body[index])
+  }
+  Done(out)
 }
 
 ///|
-/// Ask the model for a TLDR of `messages`, returned as an assistant message.
-async fn HistoryCompressor::summarize(
-  self : HistoryCompressor,
+/// Split the leading system message off a conversation.
+fn split_system(
   messages : Array[@moonmuse.Message],
-) -> @moonmuse.Message {
-  let sb = StringBuilder()
-  sb.write_string("Summarize this conversation into a brief TLDR:\n")
-  for m in messages {
-    sb.write_string(m.text_content())
-    sb.write_string("\n")
+) -> (Array[@moonmuse.Message], Array[@moonmuse.Message]) {
+  let head : Array[@moonmuse.Message] = []
+  let start = if messages.length() > 0 && messages[0].role is System {
+    head.push(messages[0])
+    1
+  } else {
+    0
   }
-  let prompt = @moonmuse.PromptBuilder::new().user(sb.to_string()).build()
-  let reply = LLMClient::execute(self.client, prompt~, model=self.model, tools=[])
-  @moonmuse.Message::assistant("TLDR: " + reply.text_content())
+  let body : Array[@moonmuse.Message] = []
+  for index in start..<messages.length() {
+    body.push(messages[index])
+  }
+  (head, body)
 }
 
 ///|
-pub extend HistoryCompression with Debug::{to_repr}
-
-///|
-pub extend HistoryCompression with Eq::{not_equal, equal}
+/// Ask the model for a summary of `messages`.
+async fn summarize(
+  runtime : Runtime,
+  context : RunContext,
+  messages : Array[@moonmuse.Message],
+) -> Summary {
+  let transcript = StringBuilder()
+  for message in messages {
+    transcript.write_string(
+      role_code(message.role) + ": " + message.text_content() + "\n",
+    )
+  }
+  let request = @moonmuse.Request::new(runtime.model, [
+    @moonmuse.Message::user(
+      "Summarise this conversation in a short paragraph, keeping the decisions, the facts learned and what is still open:\n" +
+      transcript.to_string(),
+    ),
+  ])
+  let call : ModelCall = { request, }
+  match pipeline_model(runtime, context, call, RequestMode::NoTools) {
+    Replied(reply) => Written(reply.text())
+    Failed(reason~, ..) => Unavailable(reason~)
+    Halted(text) => Written(text)
+  }
+}

@@ -1,86 +1,91 @@
-// Choice selection (Koog `ChoiceSelectionStrategy`): pick one reply among the several a
-// multi-choice request (`execute_multiple`) returns. `FirstChoice` is Koog's deterministic
-// `Default` (take the first); `LLMChoiceSelector` asks a model to judge which candidate is
-// best and returns it (Koog's LLM-backed selector).
-
 ///|
-/// A strategy for choosing one reply among several candidates for a prompt.
-pub(open) trait ChoiceSelectionStrategy {
-  async fn choose(
-    Self,
-    prompt : @moonmuse.Prompt,
-    choices : Array[@moonmuse.Message],
-  ) -> @moonmuse.Message
+/// Picks one reply out of several candidates for the same request.
+///
+/// Asking more than once and choosing is how a run buys diversity without asking the provider
+/// for `n` completions it may not support: every candidate is a normal call, so middleware,
+/// limits and retries apply to each of them.
+pub(open) trait Chooser {
+  async fn choose(Self, Array[@moonmuse.Reply]) -> @moonmuse.Reply
 }
 
 ///|
-/// Take the first candidate (Koog `ChoiceSelectionStrategy.Default`).
+/// Take the first candidate.
 pub struct FirstChoice {}
 
 ///|
-/// The first-choice selector.
+/// The first-candidate chooser.
 pub fn FirstChoice::new() -> FirstChoice {
   FirstChoice::{ }
 }
 
 ///|
-pub impl ChoiceSelectionStrategy for FirstChoice with fn choose(
-  _self,
-  _prompt,
-  choices,
-) {
-  if choices.length() > 0 {
-    choices[0]
-  } else {
-    @moonmuse.Message::assistant("")
+pub extend FirstChoice with Chooser::{choose}
+
+///|
+pub impl Chooser for FirstChoice with fn choose(_self, candidates) {
+  match candidates {
+    [first, ..] => first
+    [] =>
+      @moonmuse.Reply::new(
+        @moonmuse.Message::assistant(""),
+        finish=@moonmuse.Finish::Stop,
+      )
   }
 }
 
 ///|
-/// Ask a model to judge which candidate is best and return it (Koog's LLM-backed choice
-/// selection).
-pub struct LLMChoiceSelector {
-  client : &LLMClient
-  model : @models.LLModel
+/// Ask a model which candidate answers best, and keep that one.
+pub struct ModelChoice {
+  provider : &@moonmuse.Provider
+  model : String
 }
 
 ///|
-/// A selector that judges with `client` / `model`.
-pub fn LLMChoiceSelector::new(
-  client : &LLMClient,
-  model : @models.LLModel,
-) -> LLMChoiceSelector {
-  { client, model, }
+/// A chooser that judges with `provider` / `model`.
+pub fn ModelChoice::new(
+  provider : &@moonmuse.Provider,
+  model : String,
+) -> ModelChoice {
+  { provider, model, }
 }
 
 ///|
-pub impl ChoiceSelectionStrategy for LLMChoiceSelector with fn choose(
-  self,
-  _prompt,
-  choices,
-) {
-  guard choices.length() > 0 else { @moonmuse.Message::assistant("") }
-  let sb = StringBuilder()
-  sb.write_string(
-    "Select the best of these candidate answers. Reply with only its number.\n",
+pub extend ModelChoice with Chooser::{choose}
+
+///|
+pub impl Chooser for ModelChoice with fn choose(self, candidates) {
+  guard candidates.length() > 0 else {
+    return @moonmuse.Reply::new(
+      @moonmuse.Message::assistant(""),
+      finish=@moonmuse.Finish::Stop,
+    )
+  }
+  let listing = StringBuilder()
+  listing.write_string(
+    "Several answers were produced for the same request. Reply with the number of the best one and nothing else.\n",
   )
-  for i, c in choices {
-    sb.write_string("[" + i.to_string() + "] " + c.text_content() + "\n")
+  for index, candidate in candidates {
+    listing.write_string(
+      "[" + index.to_string() + "] " + candidate.text() + "\n",
+    )
   }
-  let judge = @moonmuse.PromptBuilder::new().user(sb.to_string()).build()
-  let reply = LLMClient::execute(self.client, prompt=judge, model=self.model, tools=[])
-  choices[choice_index(reply.text_content(), choices.length())]
+  let request = @moonmuse.Request::new(self.model, [
+    @moonmuse.Message::user(listing.to_string()),
+  ])
+  let reply = self.provider.chat(request) catch { _ => candidates[0] }
+  let picked = candidate_index(reply.text(), candidates.length())
+  candidates[picked]
 }
 
 ///|
-/// The candidate index a judge's reply names: the first integer in the text, clamped into
-/// range (0 if none is found).
-fn choice_index(text : String, count : Int32) -> Int32 {
-  let mut num = 0
+/// The candidate a judge named: the first integer in its text, kept in range, falling back to
+/// the first candidate when there is no number at all.
+fn candidate_index(text : String, count : Int32) -> Int32 {
+  let mut value = 0
   let mut found = false
-  for c in text {
-    if c >= '0' && c <= '9' {
-      num = num * 10 + (c.to_int() - '0'.to_int())
+  for character in text {
+    if character >= '0' && character <= '9' {
+      value = value * 10 + (character.to_int() - '0'.to_int())
       found = true
     } else if found {
       break
@@ -88,15 +93,9 @@ fn choice_index(text : String, count : Int32) -> Int32 {
   }
   if !found {
     0
-  } else if num >= count {
+  } else if value >= count {
     count - 1
   } else {
-    num
+    value
   }
 }
-
-///|
-pub extend FirstChoice with ChoiceSelectionStrategy::{choose}
-
-///|
-pub extend LLMChoiceSelector with ChoiceSelectionStrategy::{choose}
