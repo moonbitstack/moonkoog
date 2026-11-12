@@ -1,5 +1,6 @@
-// The pipeline hooks, one file per concern. The process and file-system packages are imported
-// for every target and only used by `os.native.mbt`; the warning about that is off.
+// The pipeline hooks, one file per concern. The file-system and process packages work on every
+// target; the code that reaches them lives in `os.native.mbt`, and the other targets get a stub
+// that says so.
 import {
   "moonbitstack/moonkoog/agent",
   "moonbitstack/moonmuse",
@@ -10,7 +11,7 @@ import {
   "moonbitlang/async",
   "moonbitlang/async/fs",
   "moonbitlang/async/io",
-  "moonbitlang/async/shell",
+  "moonbitlang/async/process",
 }
 
 import {
@@ -18,8 +19,6 @@ import {
   "moonbitstack/moonmuse",
   "moonbitstack/moonmuse/fake",
   "moonbitstack/moonstate",
-  "moonbitstack/moonjson",
-  "moonbitlang/core/json",
   "moonbitlang/async",
 } for "test"
 

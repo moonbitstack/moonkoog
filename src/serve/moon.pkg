@@ -1,0 +1,13 @@
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonapi",
+  "moonbitstack/moonapi/status",
+  "moonbitlang/core/env",
+}
+
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonmuse/fake",
+  "moonbitstack/moonstate",
+  "moonbitlang/async",
+} for "test"

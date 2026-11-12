@@ -1,0 +1,25 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonkoog/multi"
+
+import {
+  "moonbitstack/moonkoog/agent",
+}
+
+// Values
+pub fn handoff_tool(Array[String]) -> @agent.ToolSpec
+
+pub let handoff_tool_name : String
+
+pub let route_node : String
+
+pub fn supervisor(@agent.AgentConfig, Array[@agent.Agent], instruction? : String, max_turns? : Int32) -> @agent.AgentConfig
+
+pub fn swarm(@agent.AgentConfig, Array[@agent.Agent]) -> @agent.AgentConfig
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

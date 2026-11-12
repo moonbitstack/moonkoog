@@ -1,0 +1,15 @@
+// The facade: what a caller gets from importing the module root. Everything here is re-exported
+// from the package that owns it, so an application that wants the agent, its middleware, the
+// planner and the team builder imports one path and reaches all of it.
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonkoog/middleware",
+  "moonbitstack/moonkoog/plan",
+  "moonbitstack/moonkoog/multi",
+  "moonbitstack/moonkoog/tools",
+}
+
+import {
+  "moonbitstack/moonmuse/fake",
+  "moonbitlang/async",
+} for "test"

@@ -1,0 +1,10 @@
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonacp",
+}
+
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonmuse/fake",
+  "moonbitlang/async",
+} for "test"

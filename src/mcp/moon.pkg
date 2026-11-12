@@ -1,0 +1,15 @@
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonmcp",
+  "moonbitstack/moonmcp/client",
+  "moonbitstack/moonmcp/tools",
+  "moonbitstack/moonmcp/types",
+}
+
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonmcp/client",
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonmuse/fake",
+  "moonbitlang/async",
+} for "test"

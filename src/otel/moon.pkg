@@ -1,0 +1,14 @@
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moontel/trace",
+  "moonbitstack/moontel/semconv",
+}
+
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonmuse/fake",
+  "moonbitstack/moontel/trace",
+  "moonbitstack/moontel/semconv",
+  "moonbitlang/async",
+} for "test"

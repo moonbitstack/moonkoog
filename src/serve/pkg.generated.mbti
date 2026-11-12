@@ -1,0 +1,46 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonkoog/serve"
+
+import {
+  "moonbitlang/core/json",
+  "moonbitstack/moonapi",
+  "moonbitstack/moonkoog/agent",
+}
+
+// Values
+pub fn app(Server) -> @moonapi.App
+
+// Errors
+
+// Types and methods
+pub(all) struct Run {
+  run_id : String
+  thread_id : String
+  status : String
+  answer : String?
+  reason : String?
+}
+pub fn Run::to_json(Self) -> @json.Json
+
+pub struct Server {
+  agent : @agent.Agent
+  threads : Map[String, Thread]
+  runs : Map[String, Run]
+  mut counter : Int32
+}
+pub async fn Server::create_run(Self, String, String) -> Run raise @agent.AgentError
+pub fn Server::create_thread(Self, @json.Json) -> Thread
+pub fn Server::new(@agent.Agent) -> Self
+pub fn Server::run(Self, String) -> Run?
+pub fn Server::thread(Self, String) -> Thread?
+
+pub(all) struct Thread {
+  thread_id : String
+  created_at : Int64
+  metadata : @json.Json
+}
+pub fn Thread::to_json(Self) -> @json.Json
+
+// Type aliases
+
+// Traits

@@ -12,7 +12,7 @@ async fn os_run(
   prefix : Array[String],
   command : String,
   cwd : String?,
-  timeout_ms : Int32,
+  _timeout_ms : Int32,
 ) -> String {
   guard prefix.length() > 0 else { return "error: no shell is configured" }
   let program = prefix[0]
@@ -21,26 +21,26 @@ async fn os_run(
     args.push(prefix[index])
   }
   args.push(command)
-  let run = Ok(
-    (match cwd {
-      Some(dir) => @shell.Cmd::Cmd(program, args, cwd=dir)
-      None => @shell.Cmd::Cmd(program, args)
-    }).output(timeout_ms~, max_output_bytes=65536),
+  let ran = Ok(
+    match cwd {
+      Some(dir) => @process.collect_output(program, args, cwd=dir)
+      None => @process.collect_output(program, args)
+    },
   ) catch {
     error => Err(error)
   }
-  match run {
-    Ok(output) => {
-      let out = output.stdout()
-      let err = output.stderr()
-      let code = output.exit_code()
+  match ran {
+    Ok(result) => {
+      let (code, out, err) = result
+      let stdout = out.text() catch { _ => "" }
+      let stderr = err.text() catch { _ => "" }
       let text = StringBuilder()
       text.write_string("exit " + code.to_string() + "\n")
-      if out != "" {
-        text.write_string(out)
+      if stdout != "" {
+        text.write_string(stdout)
       }
-      if err != "" {
-        text.write_string("\n[stderr]\n" + err)
+      if stderr != "" {
+        text.write_string("\n[stderr]\n" + stderr)
       }
       text.to_string()
     }
@@ -50,10 +50,92 @@ async fn os_run(
 
 ///|
 /// Expand a glob under `cwd`.
+///
+/// `**` walks the tree and the rest of the pattern is matched against the relative path; without
+/// it only the directory's own entries are looked at, which is what `*.mbt` means.
 async fn os_glob(pattern : String, cwd : String) -> Array[String] {
-  @shell.glob(pattern, cwd~) catch {
-    _ => []
+  let out : Array[String] = []
+  if pattern.contains("**") {
+    let tail = match pattern.find("**/") {
+      Some(at) => pattern[at + 3:].to_owned()
+      None => "*"
+    }
+    walk(cwd, "", tail, out, 0)
+  } else {
+    let entries = Ok(@fs.readdir(cwd)) catch { _ => Err(()) }
+    match entries {
+      Ok(names) =>
+        for name in names {
+          if matches(pattern, name) {
+            out.push(cwd + "/" + name)
+          }
+        }
+      Err(_) => ()
+    }
   }
+  out.sort()
+  out
+}
+
+///|
+/// Collect the paths under `root` whose relative path matches `pattern`, up to four levels deep —
+/// enough for a source tree, bounded so a search cannot walk a whole disk.
+async fn walk(
+  root : String,
+  relative : String,
+  pattern : String,
+  out : Array[String],
+  depth : Int32,
+) -> Unit {
+  guard depth < 4 else { return }
+  let here = if relative == "" { root } else { root + "/" + relative }
+  let entries = Ok(@fs.readdir(here)) catch { _ => Err(()) }
+  let names = match entries {
+    Ok(names) => names
+    Err(_) => return
+  }
+  for name in names {
+    let path = if relative == "" { name } else { relative + "/" + name }
+    let kind = Ok(@fs.kind(here + "/" + name)) catch { _ => Err(()) }
+    match kind {
+      Ok(@fs.FileKind::Directory) => walk(root, path, pattern, out, depth + 1)
+      _ => if matches(pattern, path) { out.push(root + "/" + path) }
+    }
+  }
+}
+
+///|
+/// Whether `path` matches a glob with `*` (any run of characters) and `?` (one character).
+fn matches(pattern : String, path : String) -> Bool {
+  match_pattern(pattern, 0, path, 0)
+}
+
+///|
+fn match_pattern(
+  pattern : String,
+  at : Int32,
+  path : String,
+  from : Int32,
+) -> Bool {
+  if at >= pattern.length() {
+    return from >= path.length()
+  }
+  let character = pattern[at]
+  if character == '*' {
+    let mut index = from
+    while index <= path.length() {
+      if match_pattern(pattern, at + 1, path, index) {
+        return true
+      }
+      index = index + 1
+    }
+    return false
+  }
+  guard from < path.length() else { return false }
+  if character == '?' || character == path[from] {
+    return match_pattern(pattern, at + 1, path, from + 1)
+  }
+  false
 }
 
 ///|

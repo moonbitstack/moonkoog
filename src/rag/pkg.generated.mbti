@@ -1,0 +1,37 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonkoog/rag"
+
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonrag",
+}
+
+// Values
+pub fn passage(Int32, @moonrag.Scored) -> String
+
+pub fn passages(Array[@moonrag.Scored]) -> String
+
+pub fn retrieval_tool(&@moonrag.Retriever, limit? : Int32, name? : String) -> @agent.ToolSpec
+
+pub let search_tool : String
+
+// Errors
+
+// Types and methods
+pub struct Rag {
+  retriever : &@moonrag.Retriever
+  limit : Int32
+  label : String
+}
+pub async fn Rag::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn Rag::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn Rag::install(Self, @agent.Tools) -> Unit
+pub fn Rag::name(Self) -> String
+pub fn Rag::new(&@moonrag.Retriever, limit? : Int32, label? : String) -> Self
+pub async fn Rag::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn Rag::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for Rag
+
+// Type aliases
+
+// Traits

@@ -1,0 +1,27 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonkoog/mcp"
+
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonmcp/client",
+  "moonbitstack/moonmcp/exceptions",
+  "moonbitstack/moonmcp/server",
+  "moonbitstack/moonmcp/types",
+}
+
+// Values
+pub let chat_tool : String
+
+pub fn serve(@agent.Agent, name? : String, version? : String) -> @server.Server raise @exceptions.FastMCPError
+
+pub fn text_of(@types.CallToolResult) -> String
+
+pub async fn tools(@client.Client, prefix? : String) -> Array[@agent.ToolSpec]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

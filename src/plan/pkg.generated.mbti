@@ -1,0 +1,57 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonkoog/plan"
+
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonstate",
+}
+
+// Values
+pub fn advance(@agent.Runtime, @agent.AgentState, @moonstate.Run, replan~ : Bool) -> Array[@moonstate.Step[@agent.AgentState, @agent.Update]]
+
+pub let advance_node : String
+
+pub fn done(@agent.AgentState) -> Int32
+
+pub let index_key : String
+
+pub fn parse_steps(String, Int32) -> Array[String]
+
+pub fn plan_and_execute(@agent.AgentConfig, limit? : Int32, replan? : Bool) -> @agent.AgentConfig
+
+pub let plan_key : String
+
+pub async fn planner(@agent.Runtime, @agent.AgentState, @moonstate.Run, limit~ : Int32) -> Array[@moonstate.Step[@agent.AgentState, @agent.Update]]
+
+pub let planner_node : String
+
+pub fn planning_prompt(String, Int32) -> String
+
+pub fn[S : Eq + Hash] search(Array[GoapAction[S]], S, GoapGoal[S]) -> Array[String]?
+
+pub fn step(@agent.Runtime, @agent.AgentState, @moonstate.Run) -> Array[@moonstate.Step[@agent.AgentState, @agent.Update]]
+
+pub let step_node : String
+
+pub fn steps(@agent.AgentState) -> Array[String]
+
+// Errors
+
+// Types and methods
+pub(all) struct GoapAction[S] {
+  name : String
+  applies : (S) -> Bool
+  effect : (S) -> S
+  cost : (S) -> Double
+}
+pub fn[S] GoapAction::new(name~ : String, applies~ : (S) -> Bool, effect~ : (S) -> S, cost? : (S) -> Double) -> Self[S]
+
+pub(all) struct GoapGoal[S] {
+  reached : (S) -> Bool
+  estimate : (S) -> Double
+}
+pub fn[S] GoapGoal::new(reached~ : (S) -> Bool, estimate? : (S) -> Double) -> Self[S]
+
+// Type aliases
+
+// Traits

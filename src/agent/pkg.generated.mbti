@@ -1,0 +1,420 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonkoog/agent"
+
+import {
+  "moonbitlang/core/json",
+  "moonbitlang/core/ref",
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonstate",
+}
+
+// Values
+pub async fn after_agent_hooks(Runtime, RunContext, AgentState) -> Array[Update]
+
+pub let agent_node : String
+
+pub fn answer_only(name? : String) -> Strategy
+
+pub async fn before_agent_hooks(Runtime, RunContext) -> Array[Update]
+
+pub fn chat() -> Strategy
+
+pub async fn compress(Runtime, RunContext, Array[@moonmuse.Message], HistoryPolicy) -> Compressed
+
+pub fn create_agent(&@moonmuse.Provider, AgentConfig, saver? : &@moonstate.Saver, store? : &@moonstate.Store, executor? : &@moonstate.Executor) -> Agent raise @moonstate.Refused
+
+pub let default_limits : Limits
+
+pub let default_options : Options
+
+pub fn describe(AgentError) -> String
+
+pub let error_key : String
+
+pub fn error_text(Error) -> String
+
+pub let finish_node : String
+
+pub let handoff_key : String
+
+pub fn install_tools(Runtime) -> Unit
+
+pub fn merge(AgentState, Update) -> AgentState
+
+pub fn message_from_json(@json.Json, @json.JsonPath) -> @moonmuse.Message raise @json.JsonDecodeError
+
+pub fn message_to_json(@moonmuse.Message) -> @json.Json
+
+pub let model_node : String
+
+pub async fn node_agent(Runtime, String, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]
+
+pub async fn node_compress(Runtime, HistoryPolicy, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]
+
+pub async fn node_custom(Runtime, String, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]
+
+pub async fn node_execute(Runtime, ExecuteMode, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]
+
+pub async fn node_finish(Runtime, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]
+
+pub async fn node_request(Runtime, RequestMode, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]
+
+pub async fn node_request_to(Runtime, RequestMode, String, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]
+
+pub async fn node_think(Runtime, AgentState, @moonstate.Run, prompt~ : String, every~ : Int32) -> Array[@moonstate.Step[AgentState, Update]]
+
+pub fn part_from_json(@json.Json, @json.JsonPath) -> @moonmuse.Part raise @json.JsonDecodeError
+
+pub fn part_to_json(@moonmuse.Part) -> @json.Json
+
+pub async fn pipeline_model(Runtime, RunContext, ModelCall, RequestMode) -> ModelOutcome
+
+pub async fn pipeline_tool(Runtime, RunContext, ToolCall) -> ToolOutcome
+
+pub fn react(reasoning_prompt? : String, interval? : Int32) -> Strategy
+
+pub fn role_code(@moonmuse.Role) -> String
+
+pub fn role_of(String) -> @moonmuse.Role?
+
+pub fn single_run() -> Strategy
+
+pub fn[T : @json.ToJson] store(String, T) -> Update
+
+pub let tools_node : String
+
+// Errors
+pub(all) suberror AgentError {
+  Exhausted(limit~ : Int32)
+  Refused(reason~ : String)
+  Engine(@moonstate.GraphError)
+}
+
+// Types and methods
+pub struct Agent {
+  runtime : Runtime
+  graph : @moonstate.Graph[AgentState, Update]
+  strategy_name : String
+}
+pub fn Agent::graph(Self) -> @moonstate.Graph[AgentState, Update]
+pub async fn Agent::history(Self, String) -> Array[@moonstate.Snapshot[AgentState]] raise AgentError
+pub fn Agent::model(Self) -> String
+pub fn Agent::name(Self) -> String
+pub async fn Agent::resume_from(Self, String, @json.Json) -> String raise AgentError
+pub async fn Agent::run(Self, String, thread? : String) -> String raise AgentError
+pub fn Agent::runtime(Self) -> Runtime
+pub async fn Agent::state(Self, String) -> @moonstate.Snapshot[AgentState]? raise AgentError
+pub fn Agent::strategy_name(Self) -> String
+pub async fn Agent::stream(Self, String, (Event) -> Unit, thread? : String) -> String raise AgentError
+
+pub(all) struct AgentConfig {
+  name : String
+  model : String
+  instructions : String?
+  tools : Array[ToolSpec]
+  options : Options
+  limits : Limits
+  middleware : Array[&Middleware]
+  strategy : Strategy?
+  structured : Structured?
+  events : EventHandler
+  exit_tool : String?
+  nodes : Map[String, async (Runtime, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]]
+}
+pub fn AgentConfig::chat(String, name? : String) -> Self
+pub fn AgentConfig::exit_tool_spec() -> ToolSpec
+pub fn AgentConfig::new(String, name? : String) -> Self
+pub fn AgentConfig::react(String, name? : String, reasoning_prompt? : String, interval? : Int32) -> Self
+pub fn AgentConfig::with_events(Self, EventHandler) -> Self
+pub fn AgentConfig::with_instructions(Self, String) -> Self
+pub fn AgentConfig::with_limits(Self, Limits) -> Self
+pub fn AgentConfig::with_middleware(Self, &Middleware) -> Self
+pub fn AgentConfig::with_node(Self, String, async (Runtime, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]) -> Self
+pub fn AgentConfig::with_options(Self, Options) -> Self
+pub fn AgentConfig::with_strategy(Self, Strategy) -> Self
+pub fn AgentConfig::with_structured(Self, Structured) -> Self
+pub fn AgentConfig::with_tools(Self, Array[ToolSpec]) -> Self
+
+pub(all) struct AgentState {
+  messages : Array[@moonmuse.Message]
+  storage : Map[String, @json.Json]
+  model_calls : Int32
+  tool_calls : Int32
+  answer : String?
+}
+pub fn AgentState::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn[T : @json.FromJson] AgentState::get(Self, String) -> T?
+pub fn AgentState::messages(Self) -> Array[@moonmuse.Message]
+pub fn AgentState::new() -> Self
+pub fn AgentState::raw(Self, String) -> @json.Json?
+pub fn AgentState::text(Self) -> String
+pub fn AgentState::to_json(Self) -> @json.Json
+pub fn AgentState::with_messages(Self, Array[@moonmuse.Message]) -> Self
+pub impl @json.FromJson for AgentState
+pub impl @json.ToJson for AgentState
+
+pub(all) enum Compressed {
+  Done(Array[@moonmuse.Message])
+  Refused(reason~ : String)
+}
+
+pub(all) enum Event {
+  AgentStarted(name~ : String)
+  AgentFinished(name~ : String, text~ : String)
+  AgentFailed(name~ : String, reason~ : String)
+  ModelStarted(name~ : String, model~ : String)
+  ModelFinished(name~ : String, usage~ : @moonmuse.Usage)
+  ToolStarted(name~ : String, call_id~ : String)
+  ToolFinished(name~ : String, call_id~ : String, failed~ : Bool)
+  HandedOver(from~ : String, to~ : String)
+  NodeStarted(name~ : String)
+  NodeFinished(name~ : String)
+}
+
+pub struct EventHandler {
+  mut listener : (Event) -> Unit
+  mut on_agent_starting : (String) -> Unit
+  mut on_agent_completed : (String) -> Unit
+  mut on_agent_execution_failed : (String) -> Unit
+  mut on_strategy_starting : (String) -> Unit
+  mut on_strategy_completed : (String, String) -> Unit
+  mut on_llm_call_starting : (@moonmuse.Request) -> @moonmuse.Request
+  mut on_llm_call_completed : (@moonmuse.Reply) -> @moonmuse.Reply
+  mut on_llm_streaming_starting : (@moonmuse.Request) -> Unit
+  mut on_llm_streaming_frame : (String) -> Unit
+  mut on_llm_streaming_completed : (@moonmuse.Reply) -> Unit
+  mut on_tool_call_starting : (String, @json.Json) -> @json.Json
+  mut on_tool_call_completed : (String, String) -> String
+  mut on_tool_call_failed : (String, String) -> Unit
+  mut on_tool_validation_failed : (String, @json.Json, String) -> Unit
+  mut on_node_execution_starting : (String) -> Unit
+  mut on_node_execution_completed : (String) -> Unit
+  mut on_node_execution_failed : (String, String) -> Unit
+  mut on_subgraph_execution_starting : (String) -> Unit
+  mut on_subgraph_execution_completed : (String, String) -> Unit
+}
+pub fn EventHandler::intercept_llm_call_completed(Self, (@moonmuse.Reply) -> @moonmuse.Reply) -> Self
+pub fn EventHandler::intercept_llm_call_starting(Self, (@moonmuse.Request) -> @moonmuse.Request) -> Self
+pub fn EventHandler::intercept_tool_call_completed(Self, (String, String) -> String) -> Self
+pub fn EventHandler::intercept_tool_call_starting(Self, (String, @json.Json) -> @json.Json) -> Self
+pub fn EventHandler::new() -> Self
+pub fn EventHandler::observe(Self, (Event) -> Unit) -> Self
+pub fn EventHandler::on_agent_completed(Self, (String) -> Unit) -> Self
+pub fn EventHandler::on_agent_execution_failed(Self, (String) -> Unit) -> Self
+pub fn EventHandler::on_agent_starting(Self, (String) -> Unit) -> Self
+pub fn EventHandler::on_llm_call_completed(Self, (@moonmuse.Reply) -> Unit) -> Self
+pub fn EventHandler::on_llm_call_starting(Self, (@moonmuse.Request) -> Unit) -> Self
+pub fn EventHandler::on_llm_streaming_completed(Self, (@moonmuse.Reply) -> Unit) -> Self
+pub fn EventHandler::on_llm_streaming_frame(Self, (String) -> Unit) -> Self
+pub fn EventHandler::on_llm_streaming_starting(Self, (@moonmuse.Request) -> Unit) -> Self
+pub fn EventHandler::on_node_execution_completed(Self, (String) -> Unit) -> Self
+pub fn EventHandler::on_node_execution_failed(Self, (String, String) -> Unit) -> Self
+pub fn EventHandler::on_node_execution_starting(Self, (String) -> Unit) -> Self
+pub fn EventHandler::on_strategy_completed(Self, (String, String) -> Unit) -> Self
+pub fn EventHandler::on_strategy_starting(Self, (String) -> Unit) -> Self
+pub fn EventHandler::on_subgraph_execution_completed(Self, (String, String) -> Unit) -> Self
+pub fn EventHandler::on_subgraph_execution_starting(Self, (String) -> Unit) -> Self
+pub fn EventHandler::on_tool_call_completed(Self, (String, String) -> Unit) -> Self
+pub fn EventHandler::on_tool_call_failed(Self, (String, String) -> Unit) -> Self
+pub fn EventHandler::on_tool_call_starting(Self, (String, @json.Json) -> Unit) -> Self
+pub fn EventHandler::on_tool_validation_failed(Self, (String, @json.Json, String) -> Unit) -> Self
+pub fn EventHandler::report(Self, Event) -> Unit
+
+pub(all) enum ExecuteMode {
+  All
+  Single(Int32)
+}
+
+pub struct FirstChoice {
+}
+pub async fn FirstChoice::choose(Self, Array[@moonmuse.Reply]) -> @moonmuse.Reply
+pub fn FirstChoice::new() -> Self
+pub impl Chooser for FirstChoice
+
+pub(all) enum HistoryPolicy {
+  Whole
+  FromLast(Int32)
+}
+
+pub(all) struct Limits {
+  iterations : Int32
+  tool_calls : Int32
+  steps : Int32
+}
+pub fn Limits::new() -> Self
+pub fn Limits::with_iterations(Self, Int32) -> Self
+pub fn Limits::with_steps(Self, Int32) -> Self
+pub fn Limits::with_tool_calls(Self, Int32) -> Self
+
+pub(all) struct ModelCall {
+  request : @moonmuse.Request
+}
+
+pub struct ModelChoice {
+  provider : &@moonmuse.Provider
+  model : String
+}
+pub async fn ModelChoice::choose(Self, Array[@moonmuse.Reply]) -> @moonmuse.Reply
+pub fn ModelChoice::new(&@moonmuse.Provider, String) -> Self
+pub impl Chooser for ModelChoice
+
+pub(all) enum ModelOutcome {
+  Replied(@moonmuse.Reply)
+  Failed(reason~ : String, retryable~ : Bool)
+  Halted(String)
+}
+
+pub(all) enum NodeKind {
+  Start(then~ : String)
+  Request(RequestMode)
+  Execute(ExecuteMode)
+  Compress(HistoryPolicy)
+  Finish
+  Think(prompt~ : String, every~ : Int32)
+  Advise(String)
+  Custom(String)
+  Turn(mode~ : RequestMode, then~ : String)
+  Delegate(@moonstate.Graph[AgentState, Update])
+}
+
+pub(all) struct Options {
+  temperature : Double?
+  max_tokens : Int32?
+  choice : @moonmuse.ToolChoice
+  stop : Array[String]
+  extra : Map[String, @json.Json]
+}
+
+pub struct Passthrough {
+  label : String
+}
+pub async fn Passthrough::after_agent(Self, RunContext, AgentState) -> Array[Update]
+pub async fn Passthrough::before_agent(Self, RunContext) -> Array[Update]
+pub fn Passthrough::install(Self, Tools) -> Unit
+pub fn Passthrough::name(Self) -> String
+pub fn Passthrough::new(String) -> Self
+pub async fn Passthrough::wrap_model(Self, RunContext, ModelCall, async (ModelCall) -> ModelOutcome) -> ModelOutcome
+pub async fn Passthrough::wrap_tool(Self, RunContext, ToolCall, async (ToolCall) -> ToolOutcome) -> ToolOutcome
+pub impl Middleware for Passthrough
+
+pub(all) enum RequestMode {
+  Tools
+  NoTools
+  OnlyCalling
+  ForceOne(String)
+  Choice(Int32)
+  Streaming
+  StructuredOutput
+}
+
+pub(all) struct RunContext {
+  name : String
+  model : String
+  thread : String
+  step : Int32
+  state : AgentState
+  answer : @json.Json?
+  runtime : Runtime
+  handover : @ref.Ref[String?]
+  pending : Array[Update]
+}
+
+pub struct Runtime {
+  name : String
+  provider : &@moonmuse.Provider
+  model : String
+  instructions : String?
+  tools : Tools
+  options : Options
+  limits : Limits
+  middleware : Array[&Middleware]
+  events : EventHandler
+  structured : Structured?
+  chooser : &Chooser?
+  exit_tool : String?
+  custom : Map[String, async (Runtime, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]]
+  nodes : Array[String]
+}
+pub fn Runtime::context(Self, @moonstate.Run, AgentState) -> RunContext
+pub fn Runtime::has_node(Self, String) -> Bool
+pub fn Runtime::provider(Self) -> &@moonmuse.Provider
+pub fn Runtime::request_for(Self, RequestMode, AgentState) -> @moonmuse.Request
+pub fn Runtime::tool(Self, String) -> ToolSpec?
+pub fn Runtime::tool_specs(Self) -> Array[@moonmuse.Tool]
+
+pub(all) struct Strategy {
+  name : String
+  entry : String
+  nodes : Array[(String, NodeKind)]
+  edges : Array[(String, String)]
+  limit : Int32
+}
+pub fn Strategy::compile(Self, Runtime, saver? : &@moonstate.Saver, store? : &@moonstate.Store, executor? : &@moonstate.Executor) -> @moonstate.Graph[AgentState, Update] raise @moonstate.Refused
+pub fn Strategy::edge(Self, String, String) -> Self
+pub fn Strategy::new(String, limit? : Int32) -> Self
+pub fn Strategy::node(Self, String, NodeKind) -> Self
+pub fn Strategy::node_names(Self) -> Array[String]
+
+pub(all) struct Structured {
+  name : String
+  schema : @json.Json
+}
+pub fn Structured::new(String, @json.Json) -> Self
+
+pub(all) struct ToolCall {
+  part : @moonmuse.Part
+}
+
+pub(all) enum ToolOutcome {
+  Done(String)
+  Failed(String)
+  Suspend(@json.Json)
+}
+
+pub(all) struct ToolSpec {
+  tool : @moonmuse.Tool
+  run : async (@json.Json, RunContext) -> String
+}
+pub fn ToolSpec::new(name~ : String, description~ : String, run~ : async (@json.Json, RunContext) -> String, schema? : @json.Json) -> Self
+pub fn ToolSpec::of(@moonmuse.Tool, async (@json.Json, RunContext) -> String) -> Self
+
+pub struct Tools {
+  mut specs : Array[ToolSpec]
+}
+pub fn Tools::add(Self, ToolSpec) -> Unit
+pub fn Tools::new() -> Self
+pub fn Tools::register(Self, name~ : String, description~ : String, run~ : async (@json.Json, RunContext) -> String, schema? : @json.Json) -> Unit
+pub fn Tools::specs(Self) -> Array[ToolSpec]
+
+pub(all) enum Update {
+  Append(Array[@moonmuse.Message])
+  Replace(Array[@moonmuse.Message])
+  Store(key~ : String, value~ : @json.Json)
+  Forget(key~ : String)
+  Spend(model_calls~ : Int32, tool_calls~ : Int32)
+  Answer(String)
+  Adopt(AgentState)
+}
+pub fn Update::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Update::to_json(Self) -> @json.Json
+pub impl @json.FromJson for Update
+pub impl @json.ToJson for Update
+
+// Type aliases
+pub type Listener = (Event) -> Unit
+
+pub type NodeFn = async (Runtime, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]
+
+// Traits
+pub(open) trait Chooser {
+  async fn choose(Self, Array[@moonmuse.Reply]) -> @moonmuse.Reply
+}
+
+pub(open) trait Middleware {
+  fn name(Self) -> String
+  fn install(Self, Tools) -> Unit
+  async fn before_agent(Self, RunContext) -> Array[Update]
+  async fn wrap_model(Self, RunContext, ModelCall, async (ModelCall) -> ModelOutcome) -> ModelOutcome
+  async fn wrap_tool(Self, RunContext, ToolCall, async (ToolCall) -> ToolOutcome) -> ToolOutcome
+  async fn after_agent(Self, RunContext, AgentState) -> Array[Update]
+}

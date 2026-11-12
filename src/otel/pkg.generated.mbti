@@ -1,0 +1,28 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonkoog/otel"
+
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moontel/trace",
+}
+
+// Values
+pub fn agent_span_name(String) -> String
+
+pub fn tool_span_name(String) -> String
+
+// Errors
+
+// Types and methods
+pub struct Otel {
+  tracer : @trace.Tracer
+  now : () -> Int64
+  agents : Map[String, @trace.Span]
+  tools : Map[String, @trace.Span]
+}
+pub fn Otel::install(Self, @agent.EventHandler) -> @agent.EventHandler
+pub fn Otel::new(tracer~ : @trace.Tracer, now~ : () -> Int64) -> Self
+
+// Type aliases
+
+// Traits

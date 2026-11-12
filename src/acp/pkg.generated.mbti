@@ -1,0 +1,41 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonkoog/acp"
+
+import {
+  "moonbitstack/moonacp",
+  "moonbitstack/moonkoog/agent",
+}
+
+// Values
+pub fn message_update(String) -> @moonacp.SessionUpdate
+
+pub fn prompt_text(@moonacp.Prompt) -> String
+
+pub fn updates(@agent.Event) -> Array[@moonacp.SessionUpdate]
+
+// Errors
+
+// Types and methods
+pub struct Acp {
+  agent : @agent.Agent
+  mut sessions : Int32
+}
+pub async fn Acp::authenticate(Self, @moonacp.Authenticate) -> Unit raise @moonacp.Refused
+pub async fn Acp::cancel(Self, String) -> Unit
+pub async fn Acp::close_session(Self, @moonacp.CloseSession) -> Unit raise @moonacp.Refused
+pub async fn Acp::delete_session(Self, @moonacp.DeleteSession) -> Unit raise @moonacp.Refused
+pub async fn Acp::initialize(Self, @moonacp.Initialize) -> @moonacp.Initialized raise @moonacp.Refused
+pub async fn Acp::list_sessions(Self, @moonacp.ListSessions) -> @moonacp.SessionList raise @moonacp.Refused
+pub async fn Acp::load_session(Self, @moonacp.LoadSession, @moonacp.Session) -> @moonacp.SessionStarted raise @moonacp.Refused
+pub async fn Acp::logout(Self) -> Unit raise @moonacp.Refused
+pub fn Acp::new(@agent.Agent) -> Self
+pub async fn Acp::new_session(Self, @moonacp.NewSession) -> @moonacp.SessionStarted raise @moonacp.Refused
+pub async fn Acp::prompt(Self, @moonacp.Prompt, @moonacp.Session) -> @moonacp.StopReason raise @moonacp.Refused
+pub async fn Acp::resume_session(Self, @moonacp.ResumeSession, @moonacp.Session) -> @moonacp.SessionStarted raise @moonacp.Refused
+pub async fn Acp::set_config_option(Self, @moonacp.SetConfigOption) -> Array[@moonacp.ConfigOption] raise @moonacp.Refused
+pub async fn Acp::set_mode(Self, @moonacp.SetMode) -> Unit raise @moonacp.Refused
+pub impl @moonacp.Agent for Acp
+
+// Type aliases
+
+// Traits

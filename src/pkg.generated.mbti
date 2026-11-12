@@ -1,0 +1,116 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonkoog"
+
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonkoog/middleware",
+  "moonbitstack/moonkoog/plan",
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonstate",
+}
+
+// Values
+pub fn answer_only(name? : String) -> @agent.Strategy
+
+pub fn calculator() -> @agent.ToolSpec
+
+pub fn chat() -> @agent.Strategy
+
+pub fn create_agent(&@moonmuse.Provider, @agent.AgentConfig, saver? : &@moonstate.Saver, store? : &@moonstate.Store, executor? : &@moonstate.Executor) -> @agent.Agent raise @moonstate.Refused
+
+pub let default_limits : @agent.Limits
+
+pub let default_options : @agent.Options
+
+pub fn describe(@agent.AgentError) -> String
+
+pub fn handoff_tool(Array[String]) -> @agent.ToolSpec
+
+pub fn plan_and_execute(@agent.AgentConfig, limit? : Int32, replan? : Bool) -> @agent.AgentConfig
+
+pub fn react(reasoning_prompt? : String, interval? : Int32) -> @agent.Strategy
+
+pub fn[S : Eq + Hash] search(Array[@plan.GoapAction[S]], S, @plan.GoapGoal[S]) -> Array[String]?
+
+pub fn single_run() -> @agent.Strategy
+
+pub fn supervisor(@agent.AgentConfig, Array[@agent.Agent], instruction? : String, max_turns? : Int32) -> @agent.AgentConfig
+
+pub fn swarm(@agent.AgentConfig, Array[@agent.Agent]) -> @agent.AgentConfig
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+pub using @agent {type Agent}
+
+pub using @agent {type AgentConfig}
+
+pub using @agent {type AgentError}
+
+pub using @agent {type AgentState}
+
+pub using @middleware {type ContextEditing}
+
+pub using @middleware {type EditingStrategy}
+
+pub using @agent {type Event}
+
+pub using @agent {type EventHandler}
+
+pub using @middleware {type FileSearch}
+
+pub using @plan {type GoapAction}
+
+pub using @plan {type GoapGoal}
+
+pub using @middleware {type HumanInTheLoop}
+
+pub using @agent {type Limits}
+
+pub using @middleware {type ModelCallLimit}
+
+pub using @middleware {type ModelFallback}
+
+pub using @agent {type ModelOutcome}
+
+pub using @middleware {type ModelRetry}
+
+pub using @agent {type NodeKind}
+
+pub using @agent {type Options}
+
+pub using @middleware {type Pii}
+
+pub using @middleware {type PiiRule}
+
+pub using @agent {type RequestMode}
+
+pub using @agent {type RunContext}
+
+pub using @middleware {type ShellTool}
+
+pub using @agent {type Strategy}
+
+pub using @middleware {type Summarization}
+
+pub using @middleware {type TodoList}
+
+pub using @middleware {type ToolCallLimit}
+
+pub using @agent {type ToolOutcome}
+
+pub using @middleware {type ToolRetry}
+
+pub using @middleware {type ToolSelection}
+
+pub using @agent {type ToolSpec}
+
+pub using @agent {type Tools}
+
+pub using @agent {type Update}
+
+pub using @agent {trait Middleware}
+
+// Traits

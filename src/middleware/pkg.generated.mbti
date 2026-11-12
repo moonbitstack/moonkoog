@@ -1,0 +1,232 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonbitstack/moonkoog/middleware"
+
+import {
+  "moonbitlang/core/json",
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonmuse",
+}
+
+// Values
+pub let cleared : String
+
+pub fn format_todos(Array[@json.Json]) -> String
+
+pub let os_shell : Array[String]
+
+pub let read_tool : String
+
+pub let search_tool : String
+
+pub let shell_tool : String
+
+pub let todo_key : String
+
+pub let todo_note : String
+
+pub let todo_tool : String
+
+pub fn todos(@agent.AgentState) -> Array[@json.Json]
+
+pub fn tool_count(@agent.AgentState, String) -> Int32
+
+// Errors
+
+// Types and methods
+pub struct ContextEditing {
+  strategy : EditingStrategy
+}
+pub async fn ContextEditing::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn ContextEditing::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn ContextEditing::install(Self, @agent.Tools) -> Unit
+pub fn ContextEditing::name(Self) -> String
+pub fn ContextEditing::new(EditingStrategy) -> Self
+pub async fn ContextEditing::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn ContextEditing::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for ContextEditing
+
+pub(all) enum EditingStrategy {
+  ClearToolResults(keep~ : Int32)
+  KeepLast(keep~ : Int32)
+}
+
+pub(all) struct Fallback {
+  provider : &@moonmuse.Provider
+  model : String
+}
+pub fn Fallback::new(&@moonmuse.Provider, String) -> Self
+
+pub struct FileSearch {
+  root : String
+  limit : Int32
+  read_limit : Int32
+}
+pub async fn FileSearch::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn FileSearch::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn FileSearch::install(Self, @agent.Tools) -> Unit
+pub fn FileSearch::name(Self) -> String
+pub fn FileSearch::new(String, limit? : Int32, read_limit? : Int32) -> Self
+pub async fn FileSearch::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn FileSearch::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for FileSearch
+
+pub struct HumanInTheLoop {
+  tools : Array[String]
+  reason : String
+}
+pub async fn HumanInTheLoop::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn HumanInTheLoop::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn HumanInTheLoop::install(Self, @agent.Tools) -> Unit
+pub fn HumanInTheLoop::name(Self) -> String
+pub fn HumanInTheLoop::new(Array[String], reason? : String) -> Self
+pub async fn HumanInTheLoop::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn HumanInTheLoop::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for HumanInTheLoop
+
+pub struct ModelCallLimit {
+  limit : Int32
+}
+pub async fn ModelCallLimit::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn ModelCallLimit::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn ModelCallLimit::install(Self, @agent.Tools) -> Unit
+pub fn ModelCallLimit::name(Self) -> String
+pub fn ModelCallLimit::new(limit? : Int32) -> Self
+pub async fn ModelCallLimit::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn ModelCallLimit::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for ModelCallLimit
+
+pub struct ModelFallback {
+  entries : Array[Fallback]
+}
+pub async fn ModelFallback::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn ModelFallback::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn ModelFallback::install(Self, @agent.Tools) -> Unit
+pub fn ModelFallback::name(Self) -> String
+pub fn ModelFallback::new(Array[Fallback]) -> Self
+pub async fn ModelFallback::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn ModelFallback::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for ModelFallback
+
+pub struct ModelRetry {
+  attempts : Int32
+  base_ms : Int32
+  factor : Double
+  cap_ms : Int32
+}
+pub async fn ModelRetry::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn ModelRetry::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn ModelRetry::install(Self, @agent.Tools) -> Unit
+pub fn ModelRetry::name(Self) -> String
+pub fn ModelRetry::new(attempts? : Int32, base_ms? : Int32, factor? : Double, cap_ms? : Int32) -> Self
+pub async fn ModelRetry::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn ModelRetry::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for ModelRetry
+
+pub struct Pii {
+  rules : Array[PiiRule]
+  action : PiiAction
+}
+pub async fn Pii::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn Pii::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn Pii::install(Self, @agent.Tools) -> Unit
+pub fn Pii::name(Self) -> String
+pub fn Pii::new(Array[PiiRule], action? : PiiAction) -> Self
+pub fn Pii::standard() -> Self
+pub async fn Pii::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn Pii::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for Pii
+
+pub(all) enum PiiAction {
+  Redact
+  Mask
+}
+
+pub(all) struct PiiRule {
+  pattern : String
+  label : String
+}
+pub fn PiiRule::new(String, String) -> Self
+pub fn PiiRule::standard() -> Array[Self]
+
+pub struct ShellTool {
+  prefix : Array[String]
+  cwd : String?
+  timeout_ms : Int32
+}
+pub async fn ShellTool::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn ShellTool::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn ShellTool::install(Self, @agent.Tools) -> Unit
+pub fn ShellTool::name(Self) -> String
+pub fn ShellTool::new(prefix? : Array[String], cwd? : String, timeout_ms? : Int32) -> Self
+pub async fn ShellTool::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn ShellTool::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for ShellTool
+
+pub struct Summarization {
+  max_messages : Int32
+  keep : Int32
+}
+pub async fn Summarization::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn Summarization::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn Summarization::install(Self, @agent.Tools) -> Unit
+pub fn Summarization::name(Self) -> String
+pub fn Summarization::new(max_messages? : Int32, keep? : Int32) -> Self
+pub async fn Summarization::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn Summarization::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for Summarization
+
+pub struct TodoList {
+}
+pub async fn TodoList::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn TodoList::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn TodoList::install(Self, @agent.Tools) -> Unit
+pub fn TodoList::name(Self) -> String
+pub fn TodoList::new() -> Self
+pub async fn TodoList::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn TodoList::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for TodoList
+
+pub struct ToolCallLimit {
+  limit : Int32
+  tool : String?
+}
+pub async fn ToolCallLimit::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn ToolCallLimit::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn ToolCallLimit::install(Self, @agent.Tools) -> Unit
+pub fn ToolCallLimit::name(Self) -> String
+pub fn ToolCallLimit::new(limit? : Int32, tool? : String) -> Self
+pub async fn ToolCallLimit::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn ToolCallLimit::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for ToolCallLimit
+
+pub struct ToolRetry {
+  attempts : Int32
+  base_ms : Int32
+  factor : Double
+  cap_ms : Int32
+}
+pub async fn ToolRetry::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn ToolRetry::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn ToolRetry::install(Self, @agent.Tools) -> Unit
+pub fn ToolRetry::name(Self) -> String
+pub fn ToolRetry::new(attempts? : Int32, base_ms? : Int32, factor? : Double, cap_ms? : Int32) -> Self
+pub async fn ToolRetry::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn ToolRetry::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for ToolRetry
+
+pub struct ToolSelection {
+  max_tools : Int32
+  always : Array[String]
+}
+pub async fn ToolSelection::after_agent(Self, @agent.RunContext, @agent.AgentState) -> Array[@agent.Update]
+pub async fn ToolSelection::before_agent(Self, @agent.RunContext) -> Array[@agent.Update]
+pub fn ToolSelection::install(Self, @agent.Tools) -> Unit
+pub fn ToolSelection::name(Self) -> String
+pub fn ToolSelection::new(max_tools? : Int32, always? : Array[String]) -> Self
+pub async fn ToolSelection::wrap_model(Self, @agent.RunContext, @agent.ModelCall, async (@agent.ModelCall) -> @agent.ModelOutcome) -> @agent.ModelOutcome
+pub async fn ToolSelection::wrap_tool(Self, @agent.RunContext, @agent.ToolCall, async (@agent.ToolCall) -> @agent.ToolOutcome) -> @agent.ToolOutcome
+pub impl @agent.Middleware for ToolSelection
+
+// Type aliases
+
+// Traits
