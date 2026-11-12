@@ -1,0 +1,26 @@
+// The pipeline hooks, one file per concern. The process and file-system packages are imported
+// for every target and only used by `os.native.mbt`; the warning about that is off.
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonjson",
+  "moonbitstack/moonregex",
+  "moonbitlang/core/json",
+  "moonbitlang/core/env",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/io",
+  "moonbitlang/async/shell",
+}
+
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonmuse/fake",
+  "moonbitstack/moonstate",
+  "moonbitstack/moonjson",
+  "moonbitlang/core/json",
+  "moonbitlang/async",
+} for "test"
+
+warnings = "-29"

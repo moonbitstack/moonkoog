@@ -20,7 +20,7 @@ pub struct Runtime {
   provider : &@moonmuse.Provider
   model : String
   instructions : String?
-  toolbox : @toolbox.Toolbox
+  tools : Tools
   options : Options
   limits : Limits
   middleware : Array[&Middleware]
@@ -32,9 +32,20 @@ pub struct Runtime {
 }
 
 ///|
-/// The tools advertised on a call.
-pub fn Runtime::tools(self : Runtime) -> Array[@moonmuse.Tool] {
-  self.toolbox.tools()
+/// The descriptors advertised on a call.
+pub fn Runtime::tool_specs(self : Runtime) -> Array[@moonmuse.Tool] {
+  self.tools.specs().map(spec => spec.tool)
+}
+
+///|
+/// The tool of this name, if one is installed.
+pub fn Runtime::tool(self : Runtime, name : String) -> ToolSpec? {
+  for spec in self.tools.specs() {
+    if spec.tool.name == name {
+      return Some(spec)
+    }
+  }
+  None
 }
 
 ///|
@@ -50,6 +61,9 @@ pub fn Runtime::context(
     thread: run.thread(),
     step: run.step(),
     state,
+    answer: run.answer(),
+    pending: [],
+    runtime: self,
   }
 }
 
@@ -65,10 +79,4 @@ pub fn error_text(error : Error) -> String {
     @moonmuse.LlmError::Unsupported(reason) => "unsupported: " + reason
     _ => error.to_string()
   }
-}
-
-///|
-/// The text of a raised error, for the hooks that only want to log it.
-fn raised_text(error : Error) -> String {
-  error_text(error)
 }

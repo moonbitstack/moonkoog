@@ -10,6 +10,15 @@ pub(all) struct RunContext {
   thread : String
   step : Int32
   state : AgentState
+  /// The answer a resumed run was given, when the node is running again after an interrupt.
+  answer : Json?
+  /// The agent as built: provider, model, tool registry, the hooks. A middleware that needs to
+  /// call the model itself (a summariser, a tool selector) reaches it through here.
+  runtime : Runtime
+  /// Updates a middleware wants the node to write. The node returns them as steps once the
+  /// call it was wrapping has finished, so a hook can leave something in the state without a
+  /// second channel to the graph.
+  pending : Array[Update]
 }
 
 ///|
@@ -42,6 +51,9 @@ pub(all) struct ToolCall {
 pub(all) enum ToolOutcome {
   Done(String)
   Failed(String)
+  /// The call cannot run until the run is answered: the node stops on this value, the answer
+  /// arrives on resumption, and the node runs again.
+  Suspend(Json)
 }
 
 ///|
@@ -56,7 +68,7 @@ pub(all) enum ToolOutcome {
 /// something the model calls (a todo list, a shell, a file search) joins a run.
 pub(open) trait Middleware {
   fn name(Self) -> String
-  fn install(Self, @toolbox.Toolbox) -> Unit
+  fn install(Self, Tools) -> Unit
   async fn before_agent(Self, RunContext) -> Array[Update]
   async fn wrap_model(
     Self,
@@ -92,7 +104,13 @@ pub fn Passthrough::name(self : Passthrough) -> String {
 }
 
 ///|
-pub extend Passthrough with Middleware::{install, before_agent, wrap_model, wrap_tool, after_agent}
+pub extend Passthrough with Middleware::{
+  install,
+  before_agent,
+  wrap_model,
+  wrap_tool,
+  after_agent,
+}
 
 ///|
 pub impl Middleware for Passthrough with fn name(self) {

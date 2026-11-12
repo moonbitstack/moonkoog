@@ -1,7 +1,6 @@
 import {
   "moonbitstack/moonmuse",
   "moonbitstack/moonmuse/structured",
-  "moonbitstack/moonmuse/toolbox",
   "moonbitstack/moonstate",
   "moonbitstack/moonjson",
   "moonbitlang/core/json",

@@ -87,7 +87,7 @@ pub fn Runtime::request_for(
 ) -> @moonmuse.Request {
   let tools = match mode {
     NoTools | StructuredOutput => []
-    _ => self.toolbox.tools()
+    _ => self.tool_specs()
   }
   let choice = match mode {
     OnlyCalling => @moonmuse.ToolChoice::Required
@@ -248,6 +248,9 @@ pub async fn node_request(
         @moonstate.Step::Write(Append([reply.message])),
         @moonstate.Step::Write(Spend(model_calls=1, tool_calls=0)),
       ]
+      for update in context.pending {
+        steps.push(@moonstate.Step::Write(update))
+      }
       if calls.length() > 0 {
         steps.push(@moonstate.Step::Goto(tools_node))
       } else {
@@ -312,6 +315,7 @@ pub async fn node_execute(
   let calls = pending_calls(state)
   let context = runtime.context(run, state)
   let results : Array[@moonmuse.Part] = []
+  let counts : Map[String, Int32] = Map([])
   let mut executed = 0
   if state.tool_calls >= runtime.limits.tool_calls {
     return exhausted(runtime.limits.tool_calls)
@@ -332,6 +336,7 @@ pub async fn node_execute(
           let (content, failed) = match pipeline_tool(runtime, context, call) {
             Done(content) => (content, false)
             Failed(reason) => (reason, true)
+            Suspend(value) => return [@moonstate.Step::Interrupt(value)]
           }
           let content = (runtime.events.on_tool_call_completed)(name, content)
           if failed {
@@ -339,6 +344,7 @@ pub async fn node_execute(
           }
           runtime.events.report(ToolFinished(name~, call_id=id, failed~))
           results.push(@moonmuse.Part::result(id, content, error=failed))
+          counts[name] = counts.get(name).unwrap_or(0) + 1
           executed = executed + 1
         }
         _ => ()
@@ -349,6 +355,21 @@ pub async fn node_execute(
     @moonstate.Step::Write(Append([@moonmuse.Message::new(Tool, results)])),
     @moonstate.Step::Write(Spend(model_calls=0, tool_calls=executed)),
   ]
+  for name, added in counts {
+    let key = "moonkoog.tool_count." + name
+    let base = match state.storage.get(key) {
+      Some(Number(value, ..)) => value.to_int()
+      _ => 0
+    }
+    steps.push(
+      @moonstate.Step::Write(
+        Store(key~, value=Json::number((base + added).to_double())),
+      ),
+    )
+  }
+  for update in context.pending {
+    steps.push(@moonstate.Step::Write(update))
+  }
   match runtime.exit_tool {
     Some(exit_tool) =>
       if called_tool(calls, exit_tool) {

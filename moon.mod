@@ -63,6 +63,7 @@ import {
   "moonbitstack/moondate@0.1.7",
   "moonbitstack/moonknob@0.1.0",
   "moonbitstack/moonpool@0.3.4",
+  "moonbitstack/moonregex@0.1.5",
   "moonbitlang/async@0.22.5",
 }
 

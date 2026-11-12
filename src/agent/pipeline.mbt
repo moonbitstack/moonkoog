@@ -53,7 +53,10 @@ async fn dispatch_model(
           let answer = match asked {
             Ok(answer) => answer
             Err(error) =>
-              return Failed(reason=error_text(error), retryable=@moonmuse.LlmError::is_retryable(error))
+              return Failed(
+                reason=error_text(error),
+                retryable=@moonmuse.LlmError::is_retryable(error),
+              )
           }
           let text = @moonjson.dumps(answer)
           Replied(
@@ -90,7 +93,10 @@ async fn dispatch_model(
           Replied(reply)
         }
         Err(error) =>
-          Failed(reason=error_text(error), retryable=@moonmuse.LlmError::is_retryable(error))
+          Failed(
+            reason=error_text(error),
+            retryable=@moonmuse.LlmError::is_retryable(error),
+          )
       }
     }
     _ => {
@@ -128,7 +134,7 @@ async fn tool_chain(
   call : ToolCall,
 ) -> ToolOutcome {
   if index >= runtime.middleware.length() {
-    return dispatch_tool(runtime, call)
+    return dispatch_tool(runtime, context, call)
   }
   let next : async (ToolCall) -> ToolOutcome = async fn(call) {
     tool_chain(runtime, index + 1, context, call)
@@ -137,21 +143,21 @@ async fn tool_chain(
 }
 
 ///|
-/// Run the call through the toolbox and read the result back as an outcome.
-async fn dispatch_tool(runtime : Runtime, call : ToolCall) -> ToolOutcome {
-  let called = Ok(runtime.toolbox.call(call.part)) catch { error => Err(error) }
-  let result = match called {
-    Ok(result) => result
-    Err(error) => return Failed("error: " + raised_text(error))
-  }
-  match result {
-    @moonmuse.Part::Result(content~, error~, ..) =>
-      if error {
-        Failed(content)
-      } else {
-        Done(content)
+/// Run the call against the tool of that name. A tool that raises and a tool that does not
+/// exist both come back as a failure the model reads, because a loop that raised instead would
+/// lose the conversation.
+async fn dispatch_tool(
+  runtime : Runtime,
+  context : RunContext,
+  call : ToolCall,
+) -> ToolOutcome {
+  match call.part {
+    @moonmuse.Part::Call(name~, args~, ..) =>
+      match runtime.tool(name) {
+        Some(spec) => Done((spec.run)(args, context))
+        None => Failed("error: no tool named " + name)
       }
-    other => Failed("error: not a tool result: " + other.text_of())
+    other => Failed("error: not a call: " + other.text_of())
   }
 }
 
@@ -189,9 +195,9 @@ pub async fn after_agent_hooks(
 }
 
 ///|
-/// Install every middleware's tools into the toolbox. Done once, when the agent is built.
+/// Let every middleware add its tools. Done once, when the agent is built.
 pub fn install_tools(runtime : Runtime) -> Unit {
   for middleware in runtime.middleware {
-    middleware.install(runtime.toolbox)
+    middleware.install(runtime.tools)
   }
 }

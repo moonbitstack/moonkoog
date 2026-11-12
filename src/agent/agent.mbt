@@ -1,9 +1,13 @@
 ///|
 /// A tool the model may call and the function behind it. The descriptor is what the model sees;
-/// the function is handed the arguments object and returns the text the model reads back.
+/// the function is handed the arguments object and the run it belongs to, and returns the text
+/// the model reads back.
+///
+/// The run context is what makes a stateful tool possible — a todo list remembers itself, a
+/// retrieval tool can see what the run already looked at — without a second tool interface.
 pub(all) struct ToolSpec {
   tool : @moonmuse.Tool
-  run : async (Json) -> String
+  run : async (Json, RunContext) -> String
 }
 
 ///|
@@ -11,7 +15,7 @@ pub(all) struct ToolSpec {
 pub fn ToolSpec::new(
   name~ : String,
   description~ : String,
-  run~ : async (Json) -> String,
+  run~ : async (Json, RunContext) -> String,
   schema? : Json,
 ) -> ToolSpec {
   { tool: @moonmuse.Tool::new(name, description, schema?), run, }
@@ -21,9 +25,47 @@ pub fn ToolSpec::new(
 /// A tool whose descriptor is already built.
 pub fn ToolSpec::of(
   tool : @moonmuse.Tool,
-  run : async (Json) -> String,
+  run : async (Json, RunContext) -> String,
 ) -> ToolSpec {
   { tool, run, }
+}
+
+///|
+/// The tools being collected for an agent: what the config brings, and what each middleware
+/// adds when the agent is built.
+pub struct Tools {
+  mut specs : Array[ToolSpec]
+}
+
+///|
+/// An empty collection.
+pub fn Tools::new() -> Tools {
+  { specs: [], }
+}
+
+///|
+/// Add one, replacing a tool of the same name so a later registration wins.
+pub fn Tools::add(self : Tools, spec : ToolSpec) -> Unit {
+  let kept = self.specs.filter(existing => existing.tool.name != spec.tool.name)
+  self.specs = [..kept, spec]
+}
+
+///|
+/// Add a tool by name, description and body.
+pub fn Tools::register(
+  self : Tools,
+  name~ : String,
+  description~ : String,
+  run~ : async (Json, RunContext) -> String,
+  schema? : Json,
+) -> Unit {
+  self.add(ToolSpec::new(name~, description~, run~, schema?))
+}
+
+///|
+/// The collected tools.
+pub fn Tools::specs(self : Tools) -> Array[ToolSpec] {
+  self.specs
 }
 
 ///|
@@ -75,7 +117,7 @@ pub fn AgentConfig::exit_tool_spec() -> ToolSpec {
     name="__exit__",
     description="End the conversation. Call this when there is nothing more to do.",
     schema=Json::object(Map([("type", Json::string("object"))])),
-    run=_args => "conversation finished",
+    run=fn(_args, _context) { "conversation finished" },
   )
 }
 
@@ -275,16 +317,16 @@ pub fn create_agent(
   store? : &@moonstate.Store,
   executor? : &@moonstate.Executor,
 ) -> Agent raise @moonstate.Refused {
-  let toolbox = @toolbox.Toolbox::new()
+  let tools = Tools::new()
   for spec in config.tools {
-    toolbox.add(spec.tool, spec.run)
+    tools.add(spec)
   }
   let runtime : Runtime = {
     name: config.name,
     provider,
     model: config.model,
     instructions: config.instructions,
-    toolbox,
+    tools,
     options: config.options,
     limits: config.limits,
     middleware: config.middleware,

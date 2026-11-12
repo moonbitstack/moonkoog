@@ -18,7 +18,7 @@ fn adder() -> @agent.ToolSpec {
         ),
       ]),
     ),
-    run=args => {
+    run=fn(args, _context) {
       let inner = match args {
         Object(fields) => fields
         _ => Map([])
@@ -106,7 +106,10 @@ async test "the iteration cap stops a loop that never answers" {
 ///|
 async test "a provider failure surfaces as a refusal" {
   let provider = @fake.Fake::failing(500)
-  let agent = @agent.create_agent(provider, @agent.AgentConfig::new("test-model"))
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model"),
+  )
   let outcome = Ok(agent.run("hello")) catch { error => Err(error) }
   match outcome {
     Ok(_) => fail("the run should have failed")
@@ -121,7 +124,10 @@ async test "a missing tool is reported to the model, not raised" {
     call_reply("nope", Json::object(Map([]))),
     text_reply("sorry"),
   ])
-  let agent = @agent.create_agent(provider, @agent.AgentConfig::new("test-model"))
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model"),
+  )
   assert_eq(agent.run("use a tool"), "sorry")
 }
 
@@ -143,7 +149,11 @@ async test "the system message is seeded once" {
 async test "a checkpointed thread can be read back" {
   let provider = @fake.Fake::text("remembered")
   let saver = @moonstate.MemorySaver::new()
-  let agent = @agent.create_agent(provider, @agent.AgentConfig::new("test-model"), saver~)
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model"),
+    saver~,
+  )
   let _ = agent.run("first", thread="t1")
   let snapshot = agent.state("t1").unwrap()
   assert_eq(snapshot.state.text(), "remembered")
