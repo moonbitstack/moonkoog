@@ -30,8 +30,21 @@ jobs:
           moon check --target all --deny-warn
           moon test --target all
 
-  publish:
+  # The skill is part of the product: `moon publish` ships `docs/skills/<name>/SKILL.md` with the
+  # version in `moon.mod`, so the only thing left to check is that the document is a valid skill.
+  skills:
     needs: test
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: validate the skill
+        run: npx -y skills-ref validate docs/skills/moonkoog
+
+  publish:
+    needs: [test, skills]
     if: vars.MOONCAKES_PUBLISH == 'true'
     runs-on: ubuntu-26.04
     environment: mooncakes

@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>moonkoog — guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <a class="brand" href="index.html"><span class="dot"></span>moonkoog</a>
+  <p class="brand-sub">agents on the moonstate graph</p>
+  <nav class="side-nav">
+    <a href="index.html"><span class="at">#</span>overview</a>
+    <a class="active" href="guide.html"><span class="at">#</span>guide</a>
+    <a href="api.html"><span class="at">#</span>api</a>
+    <a href="https://github.com/moonbitstack/moonkoog"><span class="at">#</span>github</a>
+  </nav>
+  <div class="side-foot">
+    <button class="theme-btn" id="theme">theme: system</button>
+  </div>
+</aside>
+<main>
+  <div class="hero">
+    <h1>Guide</h1>
+    <p class="tag">From one call to a team behind a protocol. Every block on this page is a test in the repository, and every output is what it printed.</p>
+  </div>
+
+  <h2 class="section" id="install"><span class="at">#</span>1. Install</h2>
+<pre class="shell"><code>moon add moonbitstack/moonkoog</code></pre>
+  <p class="lede">A run needs a provider; the examples use <code>moonmuse/fake</code>, a scripted provider that answers from a list, so nothing on this page needs a key.</p>
+
+  <h2 class="section" id="first"><span class="at">#</span>2. A first agent</h2>
+  <p class="lede">An agent is a config and a provider. The config says which model, what the instructions are, which tools may be called, and which strategy the run follows — the default is the single-run loop.</p>
+<pre><code>async test "a first agent" {
+  let provider = @fake.Fake::text("A state graph is a program made of nodes.")
+  let agent = @moonkoog.create_agent(
+    provider,
+    @moonkoog.AgentConfig::new("scripted").with_instructions("Answer in one sentence."),
+  )
+  assert_eq(agent.run("What is a state graph?"), "A state graph is a program made of nodes.")
+  assert_eq(provider.seen()[0].messages[0].role, @moonmuse.System)
+}</code></pre>
+  <div class="out">assertions passed</div>
+
+  <h2 class="section" id="tools"><span class="at">#</span>3. Tools</h2>
+  <p class="lede">A tool is a descriptor and a body. The body gets the arguments and the run's context, and returns the text the model reads.</p>
+<pre><code>fn shout() -> @moonkoog.ToolSpec {
+  @moonkoog.ToolSpec::new(
+    name="shout",
+    description="Repeat the text in capitals.",
+    schema=Json::object(
+      Map([
+        ("type", Json::string("object")),
+        ("properties", Json::object(Map([
+          ("text", Json::object(Map([("type", Json::string("string"))]))),
+        ]))),
+      ]),
+    ),
+    run=fn(args, _context) {
+      match args {
+        Object(fields) =>
+          match fields.get("text") {
+            Some(String(text)) => text.to_upper()
+            _ => "error: no text"
+          }
+        _ => "error: no text"
+      }
+    },
+  )
+}
+
+async test "a tool call" {
+  let provider = @fake.Fake::new([
+    @moonmuse.Reply::new(
+      @moonmuse.Message::new(@moonmuse.Assistant, [
+        @moonmuse.Part::call("c1", "shout", Json::object(Map([("text", Json::string("hello"))]))),
+      ]),
+      finish=@moonmuse.Finish::Calls,
+    ),
+    @moonmuse.Reply::new(@moonmuse.Message::assistant("HELLO")),
+  ])
+  let agent = @moonkoog.create_agent(
+    provider,
+    @moonkoog.AgentConfig::new("scripted").with_tools([shout()]),
+  )
+  assert_eq(agent.run("shout hello"), "HELLO")
+}</code></pre>
+  <div class="out">assertions passed</div>
+
+  <h2 class="section" id="middleware"><span class="at">#</span>4. The pipeline</h2>
+  <p class="lede">Middleware wraps the model call or the tool call. The ones here cap the calls a run may spend and scrub an address before it leaves the process.</p>
+<pre><code>async test "a pipeline" {
+  let provider = @fake.Fake::text("ok")
+  let agent = @moonkoog.create_agent(
+    provider,
+    @moonkoog.AgentConfig::new("scripted")
+    .with_middleware(@middleware.ModelCallLimit::new(limit=2))
+    .with_middleware(@middleware.Pii::standard()),
+  )
+  assert_eq(agent.run("write to leo@example.com"), "ok")
+  assert_eq(provider.seen()[0].messages[1].text_content(), "write to [email]")
+}</code></pre>
+  <div class="out">assertions passed</div>
+
+  <h2 class="section" id="checkpoint"><span class="at">#</span>5. Checkpoints and resumption</h2>
+  <p class="lede">A thread is a name. Pass a saver and the run checkpoints each node boundary under that name; pass the same name again and the run continues from what it had, budgets included.</p>
+<pre><code>async test "a checkpointed thread" {
+  let provider = @fake.Fake::text("remembered")
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @moonkoog.create_agent(provider, @moonkoog.AgentConfig::new("scripted"), saver~)
+  assert_eq(agent.run("first", thread="t1"), "remembered")
+  let snapshot = agent.state("t1").unwrap()
+  assert_eq(snapshot.state.text(), "remembered")
+}</code></pre>
+  <div class="out">assertions passed</div>
+
+  <h2 class="section" id="plan"><span class="at">#</span>6. Planning</h2>
+  <p class="lede">Plan-and-execute writes the steps first, then works through them. A step whose tool call failed sends the run back to the planner.</p>
+<pre><code>async test "a plan" {
+  let provider = @fake.Fake::new([
+    @moonmuse.Reply::new(@moonmuse.Message::assistant("[\"look it up\", \"report it\"]")),
+    @moonmuse.Reply::new(@moonmuse.Message::assistant("six times seven is forty-two")),
+    @moonmuse.Reply::new(@moonmuse.Message::assistant("Reported: forty-two.")),
+  ])
+  let agent = @moonkoog.create_agent(
+    provider,
+    @moonkoog.plan_and_execute(@moonkoog.AgentConfig::new("scripted")),
+  )
+  assert_eq(agent.run("Work out six times seven."), "Reported: forty-two.")
+  assert_eq(provider.hits(), 3)
+}</code></pre>
+  <div class="out">assertions passed</div>
+
+  <h2 class="section" id="team"><span class="at">#</span>7. Teams</h2>
+  <p class="lede">A team is a strategy whose nodes are agents. A member hands the conversation on with the <code>handoff</code> tool; the router follows the marker it leaves.</p>
+<pre><code>async test "a team" {
+  let first = @fake.Fake::new([
+    @moonmuse.Reply::new(
+      @moonmuse.Message::new(@moonmuse.Assistant, [
+        @moonmuse.Part::call("c1", "handoff", Json::object(Map([("to", Json::string("writer"))]))),
+      ]),
+      finish=@moonmuse.Finish::Calls,
+    ),
+  ])
+  let second = @fake.Fake::new([@moonmuse.Reply::new(@moonmuse.Message::assistant("written"))])
+  let researcher = @moonkoog.create_agent(
+    first,
+    @moonkoog.AgentConfig::new("scripted", name="researcher")
+    .with_tools([@moonkoog.handoff_tool(["writer"])]),
+  )
+  let writer = @moonkoog.create_agent(
+    second,
+    @moonkoog.AgentConfig::new("scripted", name="writer"),
+  )
+  let team = @moonkoog.create_agent(
+    first,
+    @moonkoog.swarm(@moonkoog.AgentConfig::new("scripted", name="team"), [researcher, writer]),
+  )
+  assert_eq(team.run("write a line"), "written")
+}</code></pre>
+  <div class="out">assertions passed</div>
+
+  <h2 class="section" id="protocols"><span class="at">#</span>8. Behind a protocol</h2>
+  <p class="lede">The adapters are translations. This one serves an agent over MCP and calls it back over the in-memory transport, which is the same code path a stdio server takes.</p>
+<pre><code>async test "an agent behind MCP" {
+  let served = @moonkoog.create_agent(
+    @fake.Fake::text("from the served agent"),
+    @moonkoog.AgentConfig::new("scripted", name="helper"),
+  )
+  let client = @client.Client::connect(@client.Memory::new(@mcp.serve(served)))
+  let specs = @mcp.tools(client)
+  assert_eq(specs.length(), 1)
+  assert_eq(specs[0].tool.name, "chat")
+}</code></pre>
+  <div class="out">assertions passed</div>
+
+  <h2 class="section" id="traces"><span class="at">#</span>9. Traces</h2>
+  <p class="lede">The <code>otel</code> package turns a run into two spans — the agent and each tool call — with the attribute names a GenAI collector expects.</p>
+<pre><code>async test "a trace" {
+  let sink = @trace.Recorder::new()
+  let tracer = @trace.Tracer::new(
+    rand=n => Bytes::make(n, b'\x07'),
+    sink~,
+    sampler=@trace.always,
+  )
+  let otel = @otel.Otel::new(tracer~, now=fn() { 0L })
+  let agent = @moonkoog.create_agent(
+    @fake.Fake::text("traced"),
+    @moonkoog.AgentConfig::new("scripted").with_events(otel.install(@moonkoog.EventHandler::new())),
+  )
+  assert_eq(agent.run("hello"), "traced")
+  assert_eq(sink.spans()[0].name, "invoke_agent agent")
+}</code></pre>
+  <div class="out">assertions passed</div>
+
+  <h2 class="section" id="reading"><span class="at">#</span>Where to read next</h2>
+  <p class="lede">The <a href="api.html">API reference</a> has every public item. The tasks a run can be interrupted on, the middleware's contracts, and the way a strategy is data are all in the doc comments there.</p>
+
+  <footer>moonkoog · <a href="https://github.com/moonbitstack/moonkoog">github.com/moonbitstack/moonkoog</a></footer>
+</main>
+</div>
+<script src="site.js"></script>
+</body>
+</html>

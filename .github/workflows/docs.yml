@@ -1,0 +1,67 @@
+name: Docs
+
+# The site in `docs/` is deployed by Pages from this workflow. The generated pages are rebuilt
+# here, so a page that no longer matches the interfaces fails the build instead of shipping.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "docs/**"
+      - "scripts/**"
+      - "src/**"
+      - "moon.mod"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: install moonbit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: interfaces
+        run: |
+          moon update
+          moon info --target native
+
+      - name: API page is current
+        run: |
+          python3 scripts/gen_api.py
+          git diff --exit-code docs/api.html
+
+      - name: configure pages
+        uses: actions/configure-pages@v6
+        with:
+          enablement: true
+
+      - name: upload the site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-26.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v5

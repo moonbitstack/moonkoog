@@ -1,0 +1,197 @@
+:root {
+  --bg: #fbfbfd;
+  --panel: #ffffff;
+  --panel-2: #f6f7fb;
+  --ink: #14181f;
+  --muted: #5b6675;
+  --line: #e8ebf1;
+  --accent: #6d5efc;
+  --accent-soft: #efecff;
+  --out: #0ca678;
+  --code-bg: #f4f5f9;
+  --shadow: 0 1px 2px rgba(20, 24, 31, .04), 0 8px 24px -12px rgba(20, 24, 31, .10);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0e14;
+    --panel: #131722;
+    --panel-2: #0f131c;
+    --ink: #e9edf6;
+    --muted: #96a1b5;
+    --line: #212736;
+    --accent: #9d8bff;
+    --accent-soft: #1c1b3a;
+    --out: #2dd4a7;
+    --code-bg: #161b26;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 30px -14px rgba(0, 0, 0, .5);
+  }
+}
+:root[data-theme=light] {
+  --bg: #fbfbfd; --panel: #fff; --panel-2: #f6f7fb; --ink: #14181f; --muted: #5b6675;
+  --line: #e8ebf1; --accent: #6d5efc; --accent-soft: #efecff; --out: #0ca678;
+  --code-bg: #f4f5f9; --shadow: 0 1px 2px rgba(20,24,31,.04), 0 8px 24px -12px rgba(20,24,31,.10);
+}
+:root[data-theme=dark] {
+  --bg: #0b0e14; --panel: #131722; --panel-2: #0f131c; --ink: #e9edf6; --muted: #96a1b5;
+  --line: #212736; --accent: #9d8bff; --accent-soft: #1c1b3a; --out: #2dd4a7;
+  --code-bg: #161b26; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.5);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation: none !important; transition: none !important; }
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 15.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+code, pre, .mono, .path { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+html, button, input, textarea, select { font-variant-ligatures: no-contextual; }
+
+/* The scrollbar is part of the design: a slim thumb in the site's ink, hidden at the top of the
+   page and shown once you leave it. The width never changes, so the layout does not jump. */
+@supports selector(::-webkit-scrollbar) {
+  html::-webkit-scrollbar { width: 10px; height: 10px; }
+  html::-webkit-scrollbar-track { background: transparent; }
+  html::-webkit-scrollbar-thumb {
+    border-radius: 99px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    background-color: color-mix(in srgb, var(--ink) 24%, transparent);
+  }
+  html.at-top::-webkit-scrollbar-thumb { background: transparent; }
+  pre::-webkit-scrollbar, .scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  pre::-webkit-scrollbar-track, .scroll::-webkit-scrollbar-track { background: transparent; }
+  pre::-webkit-scrollbar-thumb, .scroll::-webkit-scrollbar-thumb {
+    border-radius: 99px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+    background-color: color-mix(in srgb, var(--ink) 14%, transparent);
+  }
+  pre:hover::-webkit-scrollbar-thumb, .scroll:hover::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--ink) 30%, transparent);
+  }
+}
+@supports not selector(::-webkit-scrollbar) {
+  html { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 26%, transparent) transparent; }
+  html.at-top { scrollbar-color: transparent transparent; }
+  pre, .scroll { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--ink) 16%, transparent) transparent; }
+}
+
+.layout { display: grid; grid-template-columns: 264px minmax(0, 1fr); max-width: 1180px; margin: 0 auto; }
+.sidebar {
+  position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+  border-right: 1px solid var(--line); padding: 1.6rem 1.1rem 2rem; background: var(--panel-2);
+}
+.brand {
+  display: flex; align-items: center; gap: .55rem; font-family: "IBM Plex Mono";
+  font-weight: 600; font-size: 1.35rem; letter-spacing: -.01em; color: var(--ink);
+}
+.brand .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.brand:hover { text-decoration: none; }
+.brand-sub { color: var(--muted); font-size: .8rem; margin: .15rem 0 1.3rem; padding-left: .15rem; }
+.side-nav { display: flex; flex-direction: column; gap: .1rem; }
+.side-nav a {
+  color: var(--muted); font-size: .9rem; padding: .32rem .6rem; border-radius: 8px;
+  font-family: "IBM Plex Mono"; display: flex; align-items: center; gap: .4rem;
+  border-left: 2px solid transparent;
+}
+.side-nav a .at { color: var(--accent); opacity: .6; }
+.side-nav a:hover { background: var(--accent-soft); color: var(--ink); text-decoration: none; }
+.side-nav a.active { color: var(--ink); background: var(--accent-soft); border-left-color: var(--accent); font-weight: 500; }
+.side-nav a.active .at { opacity: 1; }
+.side-foot { margin-top: 1.6rem; padding-top: 1.1rem; border-top: 1px solid var(--line); }
+.theme-btn {
+  background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 8px;
+  padding: .35rem .6rem; font: inherit; font-size: .82rem; cursor: pointer; width: 100%;
+}
+.theme-btn:hover { border-color: var(--accent); color: var(--ink); }
+
+main { padding: 2.6rem 2.4rem 5rem; min-width: 0; }
+.hero h1 { font-family: "IBM Plex Mono"; font-weight: 600; font-size: 2.9rem; letter-spacing: -.02em; margin: 0; }
+.hero .tag { color: var(--muted); font-size: 1.12rem; max-width: 62ch; margin: .5rem 0 1.1rem; text-wrap: balance; }
+.hero code { background: var(--code-bg); padding: .05rem .35rem; border-radius: 5px; font-size: .92em; color: var(--accent); }
+
+.install {
+  display: flex; align-items: center; gap: .6rem; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; padding: .65rem 1rem; box-shadow: var(--shadow); max-width: 460px;
+}
+.install .prompt { color: var(--out); user-select: none; font-weight: 600; }
+.install code { flex: 1; font-size: .95rem; }
+.copy {
+  background: none; border: 1px solid var(--line); border-radius: 7px; color: var(--muted);
+  cursor: pointer; font: inherit; font-size: .72rem; padding: .2rem .5rem;
+}
+.copy:hover { border-color: var(--accent); color: var(--accent); }
+.copy.ok { color: var(--out); border-color: var(--out); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: .9rem; margin: 1.8rem 0; }
+.card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.1rem;
+  box-shadow: var(--shadow); min-width: 0;
+}
+.card h3 { margin: 0 0 .35rem; font-size: .98rem; font-family: "IBM Plex Mono"; letter-spacing: -.01em; }
+.card p { margin: 0; color: var(--muted); font-size: .92rem; }
+.card .n { color: var(--accent); font-family: "IBM Plex Mono"; font-size: .8rem; display: block; margin-bottom: .3rem; }
+
+pre {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 12px;
+  padding: .9rem 1.1rem; overflow-x: auto; font-size: .88rem; line-height: 1.65; margin: .9rem 0;
+}
+pre code { background: none; padding: 0; color: var(--ink); overflow-wrap: normal; }
+code { overflow-wrap: anywhere; }
+.out {
+  background: var(--panel-2); border: 1px dashed var(--line); border-radius: 10px;
+  padding: .7rem 1rem; font-size: .86rem; color: var(--muted); margin: -.4rem 0 1.2rem;
+  overflow-x: auto;
+}
+h2.section { font-family: "IBM Plex Mono"; font-size: 1.55rem; margin: 2.6rem 0 .3rem; letter-spacing: -.01em; scroll-margin-top: 1.2rem; }
+h2.section .at { color: var(--accent); }
+.lede { color: var(--muted); margin: .2rem 0 1rem; max-width: 74ch; }
+
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .92rem; }
+th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 500; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+td code, th code { background: var(--code-bg); padding: .05rem .3rem; border-radius: 5px; font-size: .9em; }
+
+section.pkg { scroll-margin-top: 1.2rem; padding-top: 2.2rem; margin-top: 1.6rem; border-top: 1px solid var(--line); }
+section.pkg > h2 { font-family: "IBM Plex Mono"; font-size: 1.45rem; margin: 0 0 .15rem; letter-spacing: -.01em; }
+section.pkg > h2 .at { color: var(--accent); }
+.path { font-size: .78rem; color: var(--muted); margin-left: .5rem; }
+.pdesc { color: var(--muted); margin: .15rem 0 1rem; max-width: 72ch; }
+h3.group { font-size: .76rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 1.4rem 0 .4rem; font-weight: 600; }
+.item {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .8rem 1.05rem;
+  margin: .6rem 0; box-shadow: var(--shadow); transition: border-color .15s;
+}
+.item:hover { border-color: color-mix(in oklab, var(--accent) 40%, var(--line)); }
+.kind {
+  display: inline-block; font-size: .64rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+  border-radius: 6px; padding: .08rem .42rem; margin-bottom: .45rem; color: var(--accent);
+  background: var(--accent-soft); border: 1px solid color-mix(in oklab, var(--accent) 26%, transparent);
+}
+.sig { margin: 0; font-family: "IBM Plex Mono"; font-size: .88rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.sig .k { color: #8b5cf6; font-weight: 500; }
+@media (prefers-color-scheme: dark) { .sig .k { color: #b794ff; } }
+.doc { margin: .45rem 0 0; color: var(--muted); font-size: .92rem; max-width: 76ch; }
+
+footer { margin-top: 3rem; padding-top: 1.3rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
+
+@media (width <= 820px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+  .side-nav { flex-flow: row wrap; }
+  .side-nav a { border-left: none; }
+  main { padding: 1.8rem 1.2rem 4rem; }
+  .hero h1 { font-size: 2.2rem; }
+  table { font-size: .85rem; }
+}

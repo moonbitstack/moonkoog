@@ -48,3 +48,21 @@ jobs:
       - name: lint (fmt is clean)
         run: |
           moon fmt && git diff --exit-code
+
+      # The interfaces are committed, so a change that is not reflected in them — or in the API
+      # page generated from them — fails here rather than at the next release.
+      - name: interfaces and the API page are current
+        run: |
+          moon info --target native
+          python3 scripts/gen_api.py
+          git diff --exit-code
+
+      - name: the code in the docs compiles
+        run: python3 scripts/check_snippets.py
+
+      - name: examples run
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          for example in src/examples/*/; do
+            moon run --target native "$example"
+          done
