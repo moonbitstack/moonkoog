@@ -63,8 +63,9 @@ pub(all) enum HistoryPolicy {
 /// compression and the exit are one each. The moderation nodes are a middleware here, because
 /// what they do — inspect or rewrite messages on the way through — is a pipeline concern.
 pub(all) enum NodeKind {
-  /// The run-start node: seeds the system message and runs the middleware's start hooks.
-  Start
+  /// The run-start node: seeds the system message, runs the middleware's start hooks, and
+  /// hands over to the node the strategy puts after it.
+  Start(then~ : String)
   Request(RequestMode)
   Execute(ExecuteMode)
   Compress(HistoryPolicy)
@@ -75,6 +76,11 @@ pub(all) enum NodeKind {
   Advise(String)
   /// A body the caller registered on the runtime.
   Custom(String)
+  /// A request whose prose answer goes to `then` rather than ending the run — how a
+  /// plan-and-execute loop advances a step instead of stopping on the first paragraph.
+  Turn(mode~ : RequestMode, then~ : String)
+  /// Another agent, run as a nested graph over the same conversation.
+  Delegate(@moonstate.Graph[AgentState, Update])
 }
 
 ///|
@@ -185,6 +191,7 @@ fn exhausted(limit : Int32) -> Array[@moonstate.Step[AgentState, Update]] {
 /// The run-start node.
 pub async fn node_agent(
   runtime : Runtime,
+  then : String,
   state : AgentState,
   run : @moonstate.Run,
 ) -> Array[@moonstate.Step[AgentState, Update]] {
@@ -204,7 +211,7 @@ pub async fn node_agent(
   for update in before_agent_hooks(runtime, context) {
     steps.push(@moonstate.Step::Write(update))
   }
-  steps.push(@moonstate.Step::Goto(model_node))
+  steps.push(@moonstate.Step::Goto(then))
   steps
 }
 
@@ -224,6 +231,18 @@ fn has_system_message(messages : Array[@moonmuse.Message]) -> Bool {
 pub async fn node_request(
   runtime : Runtime,
   mode : RequestMode,
+  state : AgentState,
+  run : @moonstate.Run,
+) -> Array[@moonstate.Step[AgentState, Update]] {
+  node_request_to(runtime, mode, finish_node, state, run)
+}
+
+///|
+/// The model node with a different destination for a prose answer.
+pub async fn node_request_to(
+  runtime : Runtime,
+  mode : RequestMode,
+  then : String,
   state : AgentState,
   run : @moonstate.Run,
 ) -> Array[@moonstate.Step[AgentState, Update]] {
@@ -254,7 +273,7 @@ pub async fn node_request(
       if calls.length() > 0 {
         steps.push(@moonstate.Step::Goto(tools_node))
       } else {
-        steps.push(@moonstate.Step::Goto(finish_node))
+        steps.push(@moonstate.Step::Goto(then))
       }
       steps
     }
@@ -379,13 +398,19 @@ pub async fn node_execute(
       }
     None => ()
   }
-  match state.storage.get(handoff_key) {
-    Some(String(target)) => {
+  match context.handover.val {
+    Some(target) => {
       runtime.events.report(HandedOver(from=runtime.name, to=target))
-      steps.push(@moonstate.Step::Write(Forget(key=handoff_key)))
-      steps.push(@moonstate.Step::Goto(target))
+      if runtime.has_node(target) {
+        steps.push(@moonstate.Step::Write(Forget(key=handoff_key)))
+        steps.push(@moonstate.Step::Goto(target))
+      } else {
+        // The agent that asked for the handover is a peer of a team: its own graph has no node
+        // for the target, so it ends its turn and the team's router reads the marker.
+        steps.push(@moonstate.Step::Goto(finish_node))
+      }
     }
-    _ => steps.push(@moonstate.Step::Goto(model_node))
+    None => steps.push(@moonstate.Step::Goto(model_node))
   }
   steps
 }
@@ -482,7 +507,7 @@ pub async fn node_custom(
   run : @moonstate.Run,
 ) -> Array[@moonstate.Step[AgentState, Update]] {
   match runtime.custom.get(name) {
-    Some(body) => body(state, run)
+    Some(body) => body(runtime, state, run)
     None => failed("no node named \"" + name + "\" is registered")
   }
 }

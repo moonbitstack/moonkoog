@@ -36,19 +36,30 @@ pub fn AgentState::messages(self : AgentState) -> Array[@moonmuse.Message] {
 /// spoken yet.
 pub fn AgentState::text(self : AgentState) -> String {
   match self.answer {
-    Some(answer) => answer
-    None => {
-      let mut index = self.messages.length() - 1
-      while index >= 0 {
-        let message = self.messages[index]
-        if message.role is Assistant {
-          return message.text_content()
-        }
-        index = index - 1
+    // An answer carried over from the agent that handed the conversation over is not this
+    // agent's answer: the recorded text wins only when it says something.
+    Some(answer) =>
+      if answer != "" {
+        answer
+      } else {
+        last_assistant_text(self)
       }
-      ""
-    }
+    None => last_assistant_text(self)
   }
+}
+
+///|
+/// The text of the last assistant message, or the empty string when the model has not spoken.
+fn last_assistant_text(state : AgentState) -> String {
+  let mut index = state.messages.length() - 1
+  while index >= 0 {
+    let message = state.messages[index]
+    if message.role is Assistant {
+      return message.text_content()
+    }
+    index = index - 1
+  }
+  ""
 }
 
 ///|
@@ -77,6 +88,8 @@ pub(all) enum Update {
   Forget(key~ : String)
   Spend(model_calls~ : Int32, tool_calls~ : Int32)
   Answer(String)
+  /// Replace the whole state — what a nested agent hands back to the one that called it.
+  Adopt(AgentState)
 }
 
 ///|
@@ -108,6 +121,7 @@ pub fn merge(state : AgentState, update : Update) -> AgentState {
         tool_calls: state.tool_calls + tool_calls,
       }
     Answer(answer) => { ..state, answer: Some(answer), }
+    Adopt(adopted) => adopted
   }
 }
 
@@ -172,6 +186,10 @@ pub impl ToJson for Update with fn to_json(self) {
     Answer(answer) =>
       Json::object(
         Map([("kind", Json::string("answer")), ("answer", Json::string(answer))]),
+      )
+    Adopt(state) =>
+      Json::object(
+        Map([("kind", Json::string("adopt")), ("state", state.to_json())]),
       )
   }
 }
@@ -241,6 +259,14 @@ pub impl FromJson for Update with fn from_json(json, path) {
         Some(String(answer)) => Answer(answer)
         _ => raise @json.JsonDecodeError((path.add_key("answer"), "want text"))
       }
+    "adopt" => {
+      let state = match fields.get("state") {
+        Some(value) => @json.from_json(value, path=path.add_key("state"))
+        None =>
+          raise @json.JsonDecodeError((path.add_key("state"), "want a state"))
+      }
+      Adopt(state)
+    }
     _ =>
       raise @json.JsonDecodeError((path.add_key("kind"), "want a known update"))
   }

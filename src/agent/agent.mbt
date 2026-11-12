@@ -229,7 +229,9 @@ pub fn AgentConfig::with_events(
 }
 
 ///|
-/// A copy with a custom node body registered under `name`, for a strategy that names it.
+/// A copy with a custom node body registered under `name`, for a strategy that names it. The
+/// body is handed the agent's runtime, so a composed strategy reaches the model, the tools and
+/// the middleware exactly as a built-in node does.
 pub fn AgentConfig::with_node(
   self : AgentConfig,
   name : String,
@@ -295,6 +297,12 @@ pub fn Agent::name(self : Agent) -> String {
 }
 
 ///|
+/// The compiled graph, for a strategy that composes this agent as a node of its own.
+pub fn Agent::graph(self : Agent) -> @moonstate.Graph[AgentState, Update] {
+  self.graph
+}
+
+///|
 /// The strategy it runs.
 pub fn Agent::strategy_name(self : Agent) -> String {
   self.strategy_name
@@ -335,6 +343,7 @@ pub fn create_agent(
     chooser: None,
     exit_tool: config.exit_tool,
     custom: config.nodes,
+    nodes: [],
   }
   install_tools(runtime)
   let strategy = config.strategy.unwrap_or(single_run())

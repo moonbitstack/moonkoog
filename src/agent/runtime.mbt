@@ -29,6 +29,21 @@ pub struct Runtime {
   chooser : &Chooser?
   exit_tool : String?
   custom : Map[String, NodeFn]
+  /// The node names of the strategy this runtime was compiled for, so a tool that asks for a
+  /// handover can tell a node of this graph from one that belongs to the agent that called it.
+  nodes : Array[String]
+}
+
+///|
+/// The provider a run calls, for a middleware or a composed strategy that needs to reach it.
+pub fn Runtime::provider(self : Runtime) -> &@moonmuse.Provider {
+  self.provider
+}
+
+///|
+/// Whether this graph has a node of that name.
+pub fn Runtime::has_node(self : Runtime, name : String) -> Bool {
+  self.nodes.contains(name)
 }
 
 ///|
@@ -63,6 +78,7 @@ pub fn Runtime::context(
     state,
     answer: run.answer(),
     pending: [],
+    handover: @ref.Ref(None),
     runtime: self,
   }
 }

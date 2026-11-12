@@ -15,6 +15,8 @@ pub(all) struct RunContext {
   /// The agent as built: provider, model, tool registry, the hooks. A middleware that needs to
   /// call the model itself (a summariser, a tool selector) reaches it through here.
   runtime : Runtime
+  /// The handover a tool asked for during this node, if any.
+  handover : @ref.Ref[String?]
   /// Updates a middleware wants the node to write. The node returns them as steps once the
   /// call it was wrapping has finished, so a hook can leave something in the state without a
   /// second channel to the graph.

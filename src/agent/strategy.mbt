@@ -1,6 +1,12 @@
 ///|
 /// A node body: what a custom position in a strategy does.
-pub type NodeFn = async (AgentState, @moonstate.Run) -> Array[
+pub type NodeFn = async (Runtime, AgentState, @moonstate.Run) -> Array[
+  @moonstate.Step[AgentState, Update],
+]
+
+///|
+/// A node body bound to one runtime: what the graph engine calls.
+type NodeBody = async (AgentState, @moonstate.Run) -> Array[
   @moonstate.Step[AgentState, Update],
 ]
 
@@ -62,11 +68,19 @@ pub fn Strategy::compile(
   store? : &@moonstate.Store,
   executor? : &@moonstate.Executor,
 ) -> @moonstate.Graph[AgentState, Update] raise @moonstate.Refused {
+  let names = self.node_names()
+  let runtime = { ..runtime, nodes: names, }
   let builder = @moonstate.Builder::new(merge~, initial=AgentState::new())
   let mut builder = builder.entry(self.entry)
   for pair in self.nodes {
     let (name, kind) = pair
-    builder = builder.node(name, node_run(runtime, kind))
+    match kind {
+      Delegate(graph) =>
+        builder = builder.subgraph(name, graph, enter=state => state, leave=state => {
+          Adopt(state)
+        })
+      _ => builder = builder.node(name, node_run(runtime, kind))
+    }
   }
   for pair in self.edges {
     let (from, to) = pair
@@ -77,11 +91,14 @@ pub fn Strategy::compile(
 
 ///|
 /// The closure a node kind compiles to.
-fn node_run(runtime : Runtime, kind : NodeKind) -> NodeFn {
+fn node_run(runtime : Runtime, kind : NodeKind) -> NodeBody {
   match kind {
-    Start => async fn(state, run) { node_agent(runtime, state, run) }
+    Start(then~) =>
+      async fn(state, run) { node_agent(runtime, then, state, run) }
     Request(mode) =>
       async fn(state, run) { node_request(runtime, mode, state, run) }
+    Turn(mode~, then~) =>
+      async fn(state, run) { node_request_to(runtime, mode, then, state, run) }
     Execute(mode) =>
       async fn(state, run) { node_execute(runtime, mode, state, run) }
     Compress(policy) =>
@@ -98,6 +115,8 @@ fn node_run(runtime : Runtime, kind : NodeKind) -> NodeFn {
       }
     Custom(name) =>
       async fn(state, run) { node_custom(runtime, name, state, run) }
+    // Compiled through the graph engine's own subgraph support, never as a plain node.
+    Delegate(_) => fn(_state, _run) { [@moonstate.Step::Goto(finish_node)] }
   }
 }
 
@@ -106,7 +125,7 @@ fn node_run(runtime : Runtime, kind : NodeKind) -> NodeFn {
 /// prose. This is the strategy an agent gets when nothing else is asked for.
 pub fn single_run() -> Strategy {
   Strategy::new("single_run")
-  .node(agent_node, Start)
+  .node(agent_node, Start(then=model_node))
   .edge(agent_node, model_node)
   .node(model_node, Request(Tools))
   .node(tools_node, Execute(All))
@@ -122,7 +141,7 @@ pub fn single_run() -> Strategy {
 /// it calls the exit tool. `exit_tool` is what the run watches for.
 pub fn chat() -> Strategy {
   Strategy::new("chat")
-  .node(agent_node, Start)
+  .node(agent_node, Start(then=model_node))
   .edge(agent_node, model_node)
   .node(model_node, Request(OnlyCalling))
   .node(tools_node, Execute(All))
@@ -141,7 +160,7 @@ pub fn react(
   interval~ : Int32 = 1,
 ) -> Strategy {
   Strategy::new("re_act")
-  .node(agent_node, Start)
+  .node(agent_node, Start(then=model_node))
   .edge(agent_node, model_node)
   .node(model_node, Request(Tools))
   .node(tools_node, Execute(All))
@@ -160,7 +179,7 @@ pub fn react(
 /// the planner half of a plan-and-execute run.
 pub fn answer_only(name~ : String = "answer") -> Strategy {
   Strategy::new(name)
-  .node(agent_node, Start)
+  .node(agent_node, Start(then=model_node))
   .edge(agent_node, model_node)
   .node(model_node, Request(NoTools))
   .node(finish_node, Finish)
