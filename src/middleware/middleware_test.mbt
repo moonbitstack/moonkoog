@@ -352,7 +352,8 @@ async test "shell_tool: a command runs and its output comes back" {
   assert_eq(results.length(), 1)
   // A target without a file system or a process has no host to run the command on: the tool says
   // so instead. Either answer proves the tool is wired; only native can prove it ran.
-  let ran = results[0].contains("hi") || results[0].contains("needs a native target")
+  let ran = results[0].contains("hi") ||
+    results[0].contains("needs a native target")
   assert_eq(ran, true)
 }
 
