@@ -135,7 +135,8 @@ jobs:
       - name: A2A — a client in another process calls the agent
         run: |
           cd integration
-          binary=$(find _build/native/debug/build -type f -name a2a-serve | head -1)
+          binary=$(find _build/native/debug/build -type f -name "a2a-serve.exe" -print -quit)
+          test -n "$binary"
           python peers/a2a_client.py "$binary"
 
       # The agent on ACP over stdio, launched by the official SDK's client the way an editor
@@ -143,7 +144,8 @@ jobs:
       - name: ACP — an editor client drives the agent over stdio
         run: |
           cd integration
-          binary=$(find _build/native/debug/build -type f -name acp-agent | head -1)
+          binary=$(find _build/native/debug/build -type f -name "acp-agent.exe" -print -quit)
+          test -n "$binary"
           python peers/acp_client.py "$binary"
 
       # Checkpoints in a real PostgreSQL: one process stops for approval, the next one resumes
@@ -159,7 +161,8 @@ jobs:
           MOONKOOG_PG_THREAD: interop-${{ github.run_id }}
         run: |
           cd integration
-          binary=$(find _build/native/debug/build -type f -name postgres-checkpoint | head -1)
+          binary=$(find _build/native/debug/build -type f -name "postgres-checkpoint.exe" -print -quit)
+          test -n "$binary"
           "$binary" run
           "$binary" resume
 
