@@ -77,6 +77,8 @@ pub fn[T : @json.ToJson] store(String, T) -> Update
 
 pub fn structured_output(name? : String) -> Strategy
 
+pub fn[T : @json.ToJson] tool_result(T) -> String
+
 pub let tools_node : String
 
 // Errors

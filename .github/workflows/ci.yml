@@ -63,6 +63,11 @@ jobs:
       - name: the code in the docs compiles
         run: python3 scripts/check_snippets.py
 
+      - name: generated tools are fresh
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          moon run src/cmd/tool --target native -- -C . src/examples/07-annotated-tools/tools.mbt -o src/examples/07-annotated-tools/tools.g.mbt --check
+
       # Every example is a program a reader can run. `browser` is the exception: it records the
       # runs the site plays back, and its output is a document for the docs workflow.
       - name: examples run

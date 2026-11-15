@@ -19,6 +19,7 @@ pub using @agent {
   type Structured,
   type ToolOutcome,
   type ToolSpec,
+  tool_result,
   type Tools,
   type Update,
   create_agent,

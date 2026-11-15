@@ -2,6 +2,7 @@
 package "moonbitstack/moonkoog"
 
 import {
+  "moonbitlang/core/json",
   "moonbitstack/moonkoog/agent",
   "moonbitstack/moonkoog/middleware",
   "moonbitstack/moonkoog/plan",
@@ -41,6 +42,8 @@ pub fn structured_output(name? : String) -> @agent.Strategy
 pub fn supervisor(@agent.AgentConfig, Array[@agent.Agent], instruction? : String, max_turns? : Int32) -> @agent.AgentConfig
 
 pub fn swarm(@agent.AgentConfig, Array[@agent.Agent]) -> @agent.AgentConfig
+
+pub fn[T : @json.ToJson] tool_result(T) -> String
 
 // Errors
 

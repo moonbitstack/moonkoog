@@ -130,3 +130,11 @@ async test "serve an agent" {
   `Engine(GraphError::Interrupted(..))` for a run that stopped for a person.
 - Middleware that changes the conversation should return a new request from `wrap_model`, not
   mutate the state: the state is a snapshot, and writes go through the graph.
+
+## Tools from plain functions
+
+Put `#koog.tool(description=...)` on a free function and wire `moonbitstack/moonkoog/cmd/tool` as a
+`dev_build` rule: the generator writes `tools()`, ready for `AgentConfig::with_tools`. Parameter
+types become the input schema (a default or an optional type is not required); a `RunContext`
+parameter receives the run's context; a `String` result goes back as text, anything else as JSON.
+

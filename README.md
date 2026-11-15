@@ -93,6 +93,46 @@ async test "a tool" {
 A tool's body receives the arguments and the run's context, which is what lets a tool keep state:
 the todo list, the approval gate and the retrieval tool all use it.
 
+### Tools as annotations
+
+A tool is usually a function the model may call. `#koog.tool` makes it one: each parameter becomes
+a property of the tool's input schema, typed from its MoonBit type, and the ones with a default or
+an optional type are not required. A parameter whose type is `RunContext` receives the run's
+context and stays out of the schema. A `String` goes back to the model as it is; any other result
+goes back as JSON.
+
+<!-- nocheck -->
+```moonbit
+#koog.tool(description="Multiply two numbers")
+fn multiply(a : Double, b : Double) -> Double {
+  a * b
+}
+
+#koog.tool(name="greet", description="Greet someone, loudly when asked")
+fn hello(name : String, loud~ : Bool = false) -> String {
+  if loud { "HELLO, \{name}" } else { "hello, \{name}" }
+}
+```
+
+The generator writes `tools()`, which an agent takes as it is:
+`AgentConfig::new("assistant").with_tools(tools())`. It shares the schema derivation with
+moonmcp's `#mcp.tool`, so a function described to a model and to an MCP client is described the
+same way. Wire it into the build once. In `moon.mod`:
+
+```
+rule(name: "tool", command: "moonx moonbitstack/moonkoog/cmd/tool@0.6.1 -C \"$mod_dir\" \"$input\" -o \"$output\"")
+```
+
+and in the `moon.pkg` of the package holding the functions:
+
+```
+dev_build(rule: "tool", input: "tools.mbt", output: "tools.g.mbt")
+formatter(ignore: [ "tools.g.mbt" ])
+```
+
+The state of a custom graph is annotated the same way, with moonstate's `#state.patch`.
+`src/examples/07-annotated-tools` runs two annotated tools through a scripted model.
+
 ## Middleware
 
 Thirteen middlewares ship with the module. Each is a type with a `new` and no hidden global:

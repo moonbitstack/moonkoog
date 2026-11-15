@@ -1,0 +1,15 @@
+// Tools written as `#koog.tool` on plain functions: the agent is given `tools()`, which
+// `cmd/tool` generated into `tools.g.mbt`. A project wires it as a dev_build rule.
+import {
+  "moonbitstack/moonkoog",
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonmuse/fake",
+  "moonbitlang/async",
+  "moonbitlang/core/json",
+}
+
+supported_targets = "+native"
+
+pkgtype(kind: "executable")
+
+formatter(ignore: [ "tools.g.mbt" ])

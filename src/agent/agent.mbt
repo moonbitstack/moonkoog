@@ -22,6 +22,14 @@ pub fn ToolSpec::new(
 }
 
 ///|
+/// What a tool hands back to the model, from any value its function returns: the JSON text of the
+/// value. A `String` is passed through as it is by the code `#tool` generates, so a tool that
+/// answers in prose is not quoted.
+pub fn[T : ToJson] tool_result(value : T) -> String {
+  @moonjson.dumps(value.to_json())
+}
+
+///|
 /// A tool whose descriptor is already built.
 pub fn ToolSpec::of(
   tool : @moonmuse.Tool,
