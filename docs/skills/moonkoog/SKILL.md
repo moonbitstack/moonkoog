@@ -84,6 +84,22 @@ async test "stop for a person" {
 }
 ```
 
+## Compose agents
+
+`as_tool` turns one agent into a tool of another: the argument is a message, the result is the
+other agent's answer, and a failed run comes back as text the model can read.
+
+```mbt
+async test "compose agents" {
+  let helper = @moonkoog.create_agent(
+    @fake.Fake::text("the helper's answer"),
+    @moonkoog.AgentConfig::new("my-model", name="helper"),
+  )
+  let tool = @moonkoog.as_tool(helper)
+  assert_eq(tool.tool.name, "helper")
+}
+```
+
 ## Serve an agent
 
 `moonkoog/mcp` exposes the agent as one `chat` tool on an MCP server, and turns a server's tools

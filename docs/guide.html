@@ -165,6 +165,29 @@ async test "a tool call" {
 }</code></pre>
   <div class="out">assertions passed</div>
 
+  <p class="lede">One member can also be handed to another as a tool, which needs no team at all: the lead agent asks for it, and the answer comes back as a tool result.</p>
+<pre><code>async test "an agent as a tool" {
+  let helper = @moonkoog.create_agent(
+    @fake.Fake::text("the helper's answer"),
+    @moonkoog.AgentConfig::new("scripted", name="helper"),
+  )
+  let lead = @moonkoog.create_agent(
+    @fake.Fake::new([
+      @moonmuse.Reply::new(
+        @moonmuse.Message::new(@moonmuse.Assistant, [
+          @moonmuse.Part::call("c1", "helper", Json::object(Map([("message", Json::string("help"))]))),
+        ]),
+        finish=@moonmuse.Finish::Calls,
+      ),
+      @moonmuse.Reply::new(@moonmuse.Message::assistant("done")),
+    ]),
+    @moonkoog.AgentConfig::new("scripted", name="lead")
+    .with_tools([@moonkoog.as_tool(helper)]),
+  )
+  assert_eq(lead.run("delegate this"), "done")
+}</code></pre>
+  <div class="out">assertions passed</div>
+
   <h2 class="section" id="protocols"><span class="at">#</span>8. Behind a protocol</h2>
   <p class="lede">The adapters are translations. This one serves an agent over MCP and calls it back over the in-memory transport, which is the same code path a stdio server takes.</p>
 <pre><code>async test "an agent behind MCP" {
