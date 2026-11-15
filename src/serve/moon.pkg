@@ -3,6 +3,7 @@ import {
   "moonbitstack/moonapi",
   "moonbitstack/moonapi/status",
   "moonbitlang/core/env",
+  "moonbitlang/core/json",
 }
 
 import {

@@ -2,7 +2,7 @@
 /// A message as JSON. The conversation is part of a checkpoint, so it has to survive a
 /// round trip through the saver: `role`, then one entry per part, each tagged with the
 /// part's kind.
-pub fn message_to_json(message : @moonmuse.Message) -> Json {
+fn message_to_json(message : @moonmuse.Message) -> Json {
   let parts : Array[Json] = []
   for part in message.parts {
     parts.push(part_to_json(part))
@@ -40,7 +40,7 @@ pub fn role_of(code : String) -> @moonmuse.Role? {
 
 ///|
 /// One part as JSON, tagged with its kind.
-pub fn part_to_json(part : @moonmuse.Part) -> Json {
+fn part_to_json(part : @moonmuse.Part) -> Json {
   match part {
     Text(text) =>
       Json::object(
@@ -80,7 +80,7 @@ pub fn part_to_json(part : @moonmuse.Part) -> Json {
 
 ///|
 /// A message from its JSON form; the error names the field that did not read.
-pub fn message_from_json(
+fn message_from_json(
   json : Json,
   path : @json.JsonPath,
 ) -> @moonmuse.Message raise @json.JsonDecodeError {
@@ -118,7 +118,7 @@ pub fn message_from_json(
 
 ///|
 /// One part from its JSON form.
-pub fn part_from_json(
+fn part_from_json(
   part : Json,
   path : @json.JsonPath,
 ) -> @moonmuse.Part raise @json.JsonDecodeError {

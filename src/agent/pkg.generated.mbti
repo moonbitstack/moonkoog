@@ -41,10 +41,6 @@ pub fn install_tools(Runtime) -> Unit
 
 pub fn merge(AgentState, Update) -> AgentState
 
-pub fn message_from_json(@json.Json, @json.JsonPath) -> @moonmuse.Message raise @json.JsonDecodeError
-
-pub fn message_to_json(@moonmuse.Message) -> @json.Json
-
 pub let model_node : String
 
 pub async fn node_agent(Runtime, String, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]
@@ -62,10 +58,6 @@ pub async fn node_request(Runtime, RequestMode, AgentState, @moonstate.Run) -> A
 pub async fn node_request_to(Runtime, RequestMode, String, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]
 
 pub async fn node_think(Runtime, AgentState, @moonstate.Run, prompt~ : String, every~ : Int32) -> Array[@moonstate.Step[AgentState, Update]]
-
-pub fn part_from_json(@json.Json, @json.JsonPath) -> @moonmuse.Part raise @json.JsonDecodeError
-
-pub fn part_to_json(@moonmuse.Part) -> @json.Json
 
 pub async fn pipeline_model(Runtime, RunContext, ModelCall, RequestMode) -> ModelOutcome
 

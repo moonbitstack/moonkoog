@@ -110,7 +110,10 @@ pub async fn Server::create_run(
 
 ///|
 /// The thread as a client reads it.
-pub fn Thread::to_json(self : Thread) -> Json {
+pub extend Thread with @json.ToJson::{to_json}
+
+///|
+pub impl @json.ToJson for Thread with fn to_json(self : Thread) -> Json {
   Json::object(
     Map([
       ("id", Json::string(self.thread_id)),
@@ -123,7 +126,10 @@ pub fn Thread::to_json(self : Thread) -> Json {
 
 ///|
 /// The run as a client reads it.
-pub fn Run::to_json(self : Run) -> Json {
+pub extend Run with @json.ToJson::{to_json}
+
+///|
+pub impl @json.ToJson for Run with fn to_json(self : Run) -> Json {
   let fields : Map[String, Json] = Map([
     ("id", Json::string(self.run_id)),
     ("object", Json::string("thread.run")),

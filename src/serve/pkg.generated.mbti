@@ -21,6 +21,7 @@ pub(all) struct Run {
   reason : String?
 }
 pub fn Run::to_json(Self) -> @json.Json
+pub impl @json.ToJson for Run
 
 pub struct Server {
   agent : @agent.Agent
@@ -40,6 +41,7 @@ pub(all) struct Thread {
   metadata : @json.Json
 }
 pub fn Thread::to_json(Self) -> @json.Json
+pub impl @json.ToJson for Thread
 
 // Type aliases
 
