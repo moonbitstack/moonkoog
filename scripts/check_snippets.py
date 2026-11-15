@@ -100,9 +100,11 @@ def main() -> int:
     package = work / "check"
     package.mkdir()
     try:
+        # The member is named by its absolute path: on Windows the temporary directory and the
+        # checkout often sit on different drives, and a relative path cannot be formed across
+        # them.
         (work / "moon.work").write_text(
-            'members = ["check", "%s"]\n'
-            % os.path.relpath(ROOT, work).replace("\\", "/"),
+            'members = ["check", "%s"]\n' % ROOT.as_posix(),
             encoding="utf-8",
         )
         version, deps = manifest()
