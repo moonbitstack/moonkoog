@@ -195,7 +195,10 @@ pub async fn node_agent(
   state : AgentState,
   run : @moonstate.Run,
 ) -> Array[@moonstate.Step[AgentState, Update]] {
-  let steps : Array[@moonstate.Step[AgentState, Update]] = []
+  // A new turn starts clean: the failure the last turn recorded, if any, is not this turn's.
+  let steps : Array[@moonstate.Step[AgentState, Update]] = [
+    @moonstate.Step::Write(Forget(key=error_key)),
+  ]
   match runtime.instructions {
     Some(instructions) =>
       if !has_system_message(state.messages) {
@@ -438,8 +441,12 @@ pub async fn node_finish(
   state : AgentState,
   run : @moonstate.Run,
 ) -> Array[@moonstate.Step[AgentState, Update]] {
+  // The answer is what the model last said. `state.text()` prefers the answer a previous turn
+  // recorded, which on a continued thread is the turn before this one.
+  let fresh = last_assistant_text(state)
+  let answer = if fresh != "" { fresh } else { state.text() }
   let steps : Array[@moonstate.Step[AgentState, Update]] = [
-    @moonstate.Step::Write(Answer(state.text())),
+    @moonstate.Step::Write(Answer(answer)),
   ]
   let context = runtime.context(run, state)
   for update in after_agent_hooks(runtime, context, state) {

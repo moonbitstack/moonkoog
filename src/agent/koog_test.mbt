@@ -1049,3 +1049,290 @@ async test "koog: testNegativeMaxIterations — a negative budget refuses the sa
     Err(other) => fail("unexpected " + @agent.describe(other))
   }
 }
+
+///|
+async test "koog: testSubtaskSequentialAllToolCallsHaveToolResults — two calls in one reply leave two results" {
+  let provider = @fake.Fake::new([
+    koog_parallel_calls(
+      "add",
+      Json::object(Map([("a", Json::number(1.0)), ("b", Json::number(1.0))])),
+      Json::object(Map([("a", Json::number(2.0)), ("b", Json::number(2.0))])),
+    ),
+    text_reply("both done"),
+  ])
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model").with_tools([koog_adder()]),
+  )
+  let _ = agent.run("go")
+  let messages = provider.seen()[1].messages
+  let tool_message = messages[messages.length() - 1]
+  // One result per call, and the results carry the ids of the calls they answer.
+  assert_eq(tool_message.results().length(), 2)
+  let answered : Array[String] = []
+  for part in tool_message.results() {
+    match part {
+      @moonmuse.Part::Result(id~, ..) => answered.push(id)
+      _ => ()
+    }
+  }
+  assert_eq(answered, ["call_1", "call_2"])
+}
+
+///|
+async test "koog: testSubtaskSequentialAcrossMultipleRoundsHasToolResults — every round leaves its result" {
+  let provider = @fake.Fake::new([
+    call_reply(
+      "add",
+      Json::object(Map([("a", Json::number(1.0)), ("b", Json::number(1.0))])),
+    ),
+    @moonmuse.Reply::new(
+      @moonmuse.Message::new(Assistant, [
+        @moonmuse.Part::call(
+          "call_2",
+          "add",
+          Json::object(
+            Map([("a", Json::number(3.0)), ("b", Json::number(3.0))]),
+          ),
+        ),
+      ]),
+      finish=@moonmuse.Finish::Calls,
+    ),
+    text_reply("done"),
+  ])
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model").with_tools([koog_adder()]),
+  )
+  let _ = agent.run("go")
+  // Two rounds, two tool messages, one result in each.
+  let messages = provider.seen()[2].messages
+  let tool_messages = messages.filter(message => message.results().length() > 0)
+  assert_eq(tool_messages.length(), 2)
+  assert_eq(tool_messages[0].results().length(), 1)
+  assert_eq(tool_messages[1].results().length(), 1)
+}
+
+///|
+async test "koog: testContextCreation — a fresh state has an empty conversation" {
+  let state = @agent.AgentState::new()
+  assert_eq(state.messages().length(), 0)
+  assert_eq(state.text(), "")
+}
+
+///|
+async test "koog: testContextCopy — two threads do not share a conversation" {
+  let provider = @fake.Fake::new([text_reply("first"), text_reply("second")])
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model"),
+    saver~,
+  )
+  let _ = agent.run("one", thread="a")
+  let _ = agent.run("two", thread="b")
+  let first = agent.state("a").unwrap()
+  let second = agent.state("b").unwrap()
+  assert_eq(first.state.messages()[0].text_content(), "one")
+  assert_eq(second.state.messages()[0].text_content(), "two")
+  assert_eq(first.state.messages().length(), second.state.messages().length())
+}
+
+///|
+async test "koog: testMultipleConsecutiveWriteSessions — successive rounds append in order" {
+  let provider = @fake.Fake::new([
+    call_reply(
+      "add",
+      Json::object(Map([("a", Json::number(1.0)), ("b", Json::number(1.0))])),
+      id="r1",
+    ),
+    @moonmuse.Reply::new(
+      @moonmuse.Message::new(Assistant, [
+        @moonmuse.Part::call(
+          "r2",
+          "add",
+          Json::object(
+            Map([("a", Json::number(2.0)), ("b", Json::number(2.0))]),
+          ),
+        ),
+      ]),
+      finish=@moonmuse.Finish::Calls,
+    ),
+    @moonmuse.Reply::new(
+      @moonmuse.Message::new(Assistant, [
+        @moonmuse.Part::call(
+          "r3",
+          "add",
+          Json::object(
+            Map([("a", Json::number(3.0)), ("b", Json::number(3.0))]),
+          ),
+        ),
+      ]),
+      finish=@moonmuse.Finish::Calls,
+    ),
+    text_reply("done"),
+  ])
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model").with_tools([koog_adder()]),
+  )
+  let _ = agent.run("go")
+  let messages = provider.seen()[3].messages
+  // The conversation alternates: the user, then a call/result pair per round, in order.
+  let answered : Array[String] = []
+  for message in messages {
+    for part in message.results() {
+      match part {
+        @moonmuse.Part::Result(id~, ..) => answered.push(id)
+        _ => ()
+      }
+    }
+  }
+  assert_eq(answered, ["r1", "r2", "r3"])
+}
+
+///|
+async test "koog: testSubtaskParallelAllToolCallsHaveToolResults — the exit call does not orphan its neighbour" {
+  let exit_call = @moonmuse.Part::call(
+    "exit_1",
+    "__exit__",
+    Json::object(Map([])),
+  )
+  let work_call = @moonmuse.Part::call(
+    "work_1",
+    "add",
+    Json::object(Map([("a", Json::number(5.0)), ("b", Json::number(5.0))])),
+  )
+  let provider = @fake.Fake::new([
+    @moonmuse.Reply::new(
+      @moonmuse.Message::new(Assistant, [work_call, exit_call]),
+      finish=@moonmuse.Finish::Calls,
+    ),
+  ])
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::chat("test-model").with_tools([koog_adder()]),
+    saver~,
+  )
+  let answer = agent.run("go", thread="chat")
+  assert_eq(answer.contains("Chat finished"), true)
+  // Every call the conversation recorded has a result: a call left without one would be sent
+  // back to the model as a dangling reference on the next turn.
+  let kept = agent.state("chat").unwrap()
+  let mut calls = 0
+  let mut results = 0
+  for message in kept.state.messages() {
+    calls = calls + message.calls().length()
+    results = results + message.results().length()
+  }
+  assert_eq(calls, 2)
+  assert_eq(results, 2)
+}
+
+///|
+async test "koog: testCheckpointsOneMoreTime — a second run on the same thread continues it" {
+  let provider = @fake.Fake::new([
+    text_reply("first answer"),
+    text_reply("second answer"),
+  ])
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model"),
+    saver~,
+  )
+  let first = agent.run("one", thread="t")
+  let second = agent.run("two", thread="t")
+  assert_eq(first, "first answer")
+  assert_eq(second, "second answer")
+  // The second request carries the first turn, which is what "continues" means here.
+  let second_request = provider.seen()[1]
+  let texts : Array[String] = []
+  for message in second_request.messages {
+    texts.push(message.text_content())
+  }
+  assert_eq(texts.contains("first answer"), true)
+  let kept = agent.state("t").unwrap()
+  assert_eq(kept.state.messages().length() >= 4, true)
+}
+
+///|
+async test "koog: testAgentRestorationNoCheckpoint — resuming a thread with nothing to resume refuses" {
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(
+    @fake.Fake::text("unused"),
+    @agent.AgentConfig::new("test-model"),
+    saver~,
+  )
+  let outcome = Ok(agent.resume_from("never-started", Json::object(Map([])))) catch {
+    error => Err(error)
+  }
+  assert_eq(outcome is Err(_), true)
+}
+
+///|
+async test "koog: testRestoreFromLatestCheckpoint — the newest checkpoint is the one read back" {
+  let provider = @fake.Fake::new([
+    text_reply("first answer"),
+    text_reply("second answer"),
+  ])
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model"),
+    saver~,
+  )
+  let _ = agent.run("one", thread="t")
+  let _ = agent.run("two", thread="t")
+  let latest = agent.state("t").unwrap()
+  let all = agent.history("t")
+  assert_eq(all.length() >= 2, true)
+  assert_eq(latest.state.text(), "second answer")
+}
+
+///|
+async test "koog: agent fails on the first run and second run running successfully" {
+  let flaky = @fake.Fake::flaky(1, text_reply("recovered"))
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(
+    flaky,
+    @agent.AgentConfig::new("test-model"),
+    saver~,
+  )
+  let first = Ok(agent.run("go", thread="t")) catch { error => Err(error) }
+  assert_eq(first is Err(_), true)
+  let second = agent.run("go again", thread="t")
+  assert_eq(second, "recovered")
+}
+
+///|
+async test "koog: agent runs to end and on second run starts from beginning again" {
+  let provider = @fake.Fake::new([
+    text_reply("first answer"),
+    text_reply("second answer"),
+  ])
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model"),
+    saver~,
+  )
+  let first = agent.run("one", thread="t")
+  assert_eq(first, "first answer")
+  // A finished thread has nothing pending, so the next run is a new turn over the same state
+  // rather than a replay of the last one.
+  let finished = agent.state("t").unwrap()
+  assert_eq(finished.next.length(), 0)
+  let second = agent.run("two", thread="t")
+  assert_eq(second, "second answer")
+  assert_eq(provider.seen().length(), 2)
+  let after = agent.state("t").unwrap()
+  let texts : Array[String] = []
+  for message in after.state.messages() {
+    texts.push(message.text_content())
+  }
+  assert_eq(texts.contains("one"), true)
+  assert_eq(texts.contains("two"), true)
+  assert_eq(texts.contains("second answer"), true)
+}
