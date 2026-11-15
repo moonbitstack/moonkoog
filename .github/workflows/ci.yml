@@ -168,6 +168,7 @@ jobs:
       - name: the LangGraph fixture is current
         run: |
           python scripts/gen_langgraph_events.py
+          moon fmt
           git diff --exit-code src/agent/langgraph_fixture_wbtest.mbt
 
       - name: the code in the docs compiles

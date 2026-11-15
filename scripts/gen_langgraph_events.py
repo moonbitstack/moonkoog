@@ -128,7 +128,10 @@ def main() -> int:
     ]
     lines.extend(f'  "{step}",' for step in events)
     lines.append("]")
-    TARGET.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    # Written with the newline the repository uses, and then the formatter runs over it in CI:
+    # the layout is the formatter's business, the steps are this script's.
+    with TARGET.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write("\n".join(lines) + "\n")
     print("wrote", TARGET.relative_to(ROOT), "with", len(events), "steps")
     for step in events:
         print(" ", step)
