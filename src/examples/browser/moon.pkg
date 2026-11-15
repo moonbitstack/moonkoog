@@ -1,0 +1,13 @@
+import {
+  "moonbitstack/moonkoog/agent",
+  "moonbitstack/moonkoog/middleware",
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonmuse/fake",
+  "moonbitstack/moonjson",
+  "moonbitlang/async",
+  "moonbitlang/core/env",
+}
+
+supported_targets = "+native"
+
+pkgtype(kind: "executable")

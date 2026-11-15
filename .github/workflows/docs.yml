@@ -46,6 +46,25 @@ jobs:
           python3 scripts/gen_api.py
           git diff --exit-code docs/api.html
 
+      # The tour plays a run of this library. The recording is made here, from this commit, and
+      # the page is not deployed with a transcript older than the code.
+      - name: record the runs the tour plays
+        run: |
+          moon build --target native src/examples/browser
+          mkdir -p docs/engine
+          ./_build/native/debug/build/examples/browser/browser.exe > docs/engine/tour.json
+          test -s docs/engine/tour.json
+          python3 - <<'PY'
+          import json
+          data = json.load(open("docs/engine/tour.json", encoding="utf-8"))
+          runs = data["scenarios"]
+          assert len(runs) == 3, runs
+          for run in runs:
+              steps = run["run"]["steps"]
+              assert steps and steps[-1]["kind"] in {"answer", "stop"}, run["id"]
+          print("recorded", len(runs), "runs:", ", ".join(one["id"] for one in runs))
+          PY
+
       - name: configure pages
         uses: actions/configure-pages@v6
         with:

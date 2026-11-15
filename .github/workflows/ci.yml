@@ -63,10 +63,15 @@ jobs:
       - name: the code in the docs compiles
         run: python3 scripts/check_snippets.py
 
+      # Every example is a program a reader can run. `browser` is the exception: it records the
+      # runs the site plays back, and its output is a document for the docs workflow.
       - name: examples run
         if: ${{ runner.os == 'Linux' }}
         run: |
           for example in src/examples/*/; do
+            case "$example" in
+              *browser/) continue ;;
+            esac
             moon run --target native "$example"
           done
 
