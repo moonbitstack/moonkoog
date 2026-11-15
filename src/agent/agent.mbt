@@ -281,6 +281,9 @@ pub struct Agent {
   runtime : Runtime
   graph : @moonstate.Graph[AgentState, Update]
   strategy_name : String
+  /// The saver the graph was compiled with, kept so a caller can move a thread's head back to
+  /// an earlier checkpoint. `None` when the run has nowhere to keep them.
+  saver : &@moonstate.Saver?
 }
 
 ///|
@@ -348,7 +351,7 @@ pub fn create_agent(
   install_tools(runtime)
   let strategy = config.strategy.unwrap_or(single_run())
   let graph = strategy.compile(runtime, saver?, store?, executor?)
-  { runtime, graph, strategy_name: strategy.name, }
+  { runtime, graph, strategy_name: strategy.name, saver, }
 }
 
 ///|
@@ -363,6 +366,91 @@ pub async fn Agent::run(
 ) -> String raise AgentError {
   let goal = Append([@moonmuse.Message::user(input)])
   self.walk(goal, input, thread?)
+}
+
+///|
+/// The id a checkpoint gets: `cp-` and the sequence number padded to six digits, which is the
+/// shape the engine writes so that ids sort the way the checkpoints were written.
+fn checkpoint_id(seq : Int32) -> String {
+  let digits = seq.to_string()
+  let padding = String::make(
+    if 6 > digits.length() {
+      6 - digits.length()
+    } else {
+      0
+    },
+    '0',
+  )
+  "cp-" + padding + digits
+}
+
+///|
+/// Move a thread's head back to the checkpoint `id`, so the next `continue_run` picks the run up
+/// where that checkpoint left it.
+///
+/// The target is copied forward as the thread's newest checkpoint instead of deleting the ones
+/// after it: a saver here is append-only, and `history` stays a record of what actually
+/// happened, including the branch that was abandoned.
+pub async fn Agent::rewind(
+  self : Agent,
+  thread : String,
+  id : String,
+) -> Unit raise AgentError {
+  let saver = match self.saver {
+    Some(saver) => saver
+    None =>
+      raise Refused(
+        reason="rewind: this agent was built without a saver, so it has no checkpoints to go back to",
+      )
+  }
+  let read = Ok(saver.get(thread, id~)) catch { error => Err(error) }
+  let target = match read {
+    Ok(Some(checkpoint)) => checkpoint
+    Ok(None) =>
+      raise Refused(
+        reason="rewind: no checkpoint " + id + " on thread " + thread,
+      )
+    Err(_) =>
+      raise Refused(reason="rewind: the saver could not read thread " + thread)
+  }
+  let newest = Ok(saver.get(thread)) catch { error => Err(error) }
+  let latest = match newest {
+    Ok(Some(checkpoint)) => checkpoint
+    Ok(None) => target
+    Err(_) => target
+  }
+  let seq = latest.seq + 1
+  let record : @moonstate.Checkpoint = {
+    thread,
+    id: checkpoint_id(seq),
+    parent: Some(latest.id),
+    seq,
+    step: target.step,
+    state: target.state,
+    pending: target.pending,
+    interrupt: None,
+    created_at: latest.created_at + 1,
+    writes: None,
+  }
+  let written = Ok(saver.put(record)) catch { error => Err(error) }
+  match written {
+    Ok(_) => ()
+    Err(_) =>
+      raise Refused(reason="rewind: the saver could not write thread " + thread)
+  }
+}
+
+///|
+/// Continue a thread from its latest checkpoint without adding a turn to the conversation.
+///
+/// This is what a rewound thread needs: the checkpoint says which nodes were about to run, and
+/// the run picks up there. It is also what a caller uses after a run stopped on a cap, when the
+/// input that started the thread has already been read.
+pub async fn Agent::continue_run(
+  self : Agent,
+  thread : String,
+) -> String raise AgentError {
+  self.walk(Spend(model_calls=0, tool_calls=0), "", thread~)
 }
 
 ///|
@@ -478,7 +566,7 @@ pub async fn Agent::state(
 }
 
 ///|
-/// Every checkpoint of a thread, newest first.
+/// Every checkpoint of a thread, in the order they were written.
 pub async fn Agent::history(
   self : Agent,
   thread : String,

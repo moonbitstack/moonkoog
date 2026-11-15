@@ -1523,3 +1523,174 @@ async test "koog: testCallToolByName — a node calls a tool it looks up by name
   // No model call was made: the node reached the tool directly.
   assert_eq(provider.seen().length(), 0)
 }
+
+///|
+/// The first checkpoint of `thread` whose next step is exactly `node`, which is the point a
+/// test rolls back to when it wants that node to run again.
+async fn koog_checkpoint_before(
+  agent : @agent.Agent,
+  thread : String,
+  node : String,
+) -> String {
+  let all = agent.history(thread)
+  // `history` is oldest first, and the earliest match is the one a test rolls back past every
+  // turn that came after it.
+  let mut found = ""
+  for snapshot in all {
+    if found == "" && snapshot.next.length() == 1 && snapshot.next[0] == node {
+      found = snapshot.id
+    }
+  }
+  found
+}
+
+///|
+async test "koog: testRestoreFromSingleCheckpoint — a run rewound to a checkpoint runs again from it" {
+  let provider = @fake.Fake::new([
+    text_reply("first answer"),
+    text_reply("second answer"),
+  ])
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model"),
+    saver~,
+  )
+  let first = agent.run("one", thread="t")
+  assert_eq(first, "first answer")
+  let point = koog_checkpoint_before(agent, "t", "model")
+  assert_eq(point != "", true)
+  agent.rewind("t", point)
+  let again = agent.continue_run("t")
+  assert_eq(again, "second answer")
+  assert_eq(provider.seen().length(), 2)
+}
+
+///|
+async test "koog: testAgentExecutionWithRollback — rolling back re-asks with the earlier conversation" {
+  let provider = @fake.Fake::new([
+    text_reply("first answer"),
+    text_reply("second answer"),
+    text_reply("replayed answer"),
+  ])
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model"),
+    saver~,
+  )
+  let _ = agent.run("one", thread="t")
+  let _ = agent.run("two", thread="t")
+  let point = koog_checkpoint_before(agent, "t", "model")
+  agent.rewind("t", point)
+  let replayed = agent.continue_run("t")
+  assert_eq(replayed, "replayed answer")
+  // The replayed request is the one the first turn made: the second turn's message is gone.
+  let seen = provider.seen()
+  let last = seen[seen.length() - 1]
+  let texts : Array[String] = []
+  for message in last.messages {
+    texts.push(message.text_content())
+  }
+  assert_eq(texts.contains("one"), true)
+  assert_eq(texts.contains("two"), false)
+}
+
+///|
+async test "koog: testRollbackToolsExecutedWhenTravelingBackInTime — a rewound run calls the tool again" {
+  let runs : Array[String] = []
+  let tool = @agent.ToolSpec::new(
+    name="tick",
+    description="Count a call.",
+    schema=Json::object(Map([("type", Json::string("object"))])),
+    run=fn(_args, _context) {
+      runs.push("tick")
+      "ticked"
+    },
+  )
+  let provider = @fake.Fake::new([
+    call_reply("tick", Json::object(Map([]))),
+    text_reply("done once"),
+    call_reply("tick", Json::object(Map([]))),
+    text_reply("done twice"),
+  ])
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model").with_tools([tool]),
+    saver~,
+  )
+  let _ = agent.run("go", thread="t")
+  assert_eq(runs.length(), 1)
+  let point = koog_checkpoint_before(agent, "t", "model")
+  agent.rewind("t", point)
+  let _ = agent.continue_run("t")
+  // Traveling back to before the model call means the tool runs a second time.
+  assert_eq(runs.length(), 2)
+}
+
+///|
+async test "koog: rewind refuses a checkpoint the thread does not have" {
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @agent.create_agent(
+    @fake.Fake::text("answer"),
+    @agent.AgentConfig::new("test-model"),
+    saver~,
+  )
+  let _ = agent.run("one", thread="t")
+  let outcome = Ok(agent.rewind("t", "cp-999999")) catch { error => Err(error) }
+  match outcome {
+    Ok(_) => fail("the rewind should have been refused")
+    Err(@agent.Refused(reason~)) =>
+      assert_eq(reason.contains("cp-999999"), true)
+    Err(other) => fail("unexpected " + @agent.describe(other))
+  }
+}
+
+///|
+async test "koog: rewind refuses an agent without a saver" {
+  let agent = @agent.create_agent(
+    @fake.Fake::text("answer"),
+    @agent.AgentConfig::new("test-model"),
+  )
+  let outcome = Ok(agent.rewind("t", "cp-000001")) catch { error => Err(error) }
+  match outcome {
+    Ok(_) => fail("the rewind should have been refused")
+    Err(@agent.Refused(reason~)) => assert_eq(reason.contains("saver"), true)
+    Err(other) => fail("unexpected " + @agent.describe(other))
+  }
+}
+
+///|
+async test "koog: testLastSuccessfulNodeIsNotExecutedTwice — a resumed run does not redo the node it finished" {
+  let provider = @fake.Fake::new([text_reply("the answer")])
+  let saver = @moonstate.MemorySaver::new()
+  let short = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model").with_limits({
+      iterations: 5,
+      tool_calls: 5,
+      steps: 1,
+    }),
+    saver~,
+  )
+  let stopped = Ok(short.run("go", thread="t")) catch { error => Err(error) }
+  assert_eq(stopped is Err(_), true)
+  // A second agent over the same saver, with room to finish: the walk picks up at the node that
+  // never ran, not at the one that already did.
+  let positions : Array[String] = []
+  let handlers = @agent.EventHandler::new().on_node_execution_starting(name => {
+    positions.push(name)
+  })
+  let patient = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model")
+    .with_limits({ iterations: 5, tool_calls: 5, steps: 10, })
+    .with_events(handlers),
+    saver~,
+  )
+  let answer = patient.continue_run("t")
+  assert_eq(answer, "the answer")
+  assert_eq(positions.contains("agent"), false)
+  assert_eq(positions.contains("model"), true)
+}

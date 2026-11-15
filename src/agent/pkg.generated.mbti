@@ -89,12 +89,15 @@ pub struct Agent {
   runtime : Runtime
   graph : @moonstate.Graph[AgentState, Update]
   strategy_name : String
+  saver : &@moonstate.Saver?
 }
+pub async fn Agent::continue_run(Self, String) -> String raise AgentError
 pub fn Agent::graph(Self) -> @moonstate.Graph[AgentState, Update]
 pub async fn Agent::history(Self, String) -> Array[@moonstate.Snapshot[AgentState]] raise AgentError
 pub fn Agent::model(Self) -> String
 pub fn Agent::name(Self) -> String
 pub async fn Agent::resume_from(Self, String, @json.Json) -> String raise AgentError
+pub async fn Agent::rewind(Self, String, String) -> Unit raise AgentError
 pub async fn Agent::run(Self, String, thread? : String) -> String raise AgentError
 pub fn Agent::runtime(Self) -> Runtime
 pub async fn Agent::state(Self, String) -> @moonstate.Snapshot[AgentState]? raise AgentError

@@ -99,7 +99,14 @@ pub fn Strategy::compile(
     let (from, to) = pair
     builder = builder.edge(from, to)
   }
-  builder.compile(self.name, saver?, store?, executor?, limit=self.limit)
+  // The walk limit is the tighter of the strategy's own and the run's budget: `Limits.steps` is
+  // what a caller lowers to make a looping strategy stop, and it has to reach the engine.
+  let limit = if runtime.limits.steps < self.limit {
+    runtime.limits.steps
+  } else {
+    self.limit
+  }
+  builder.compile(self.name, saver?, store?, executor?, limit~)
 }
 
 ///|

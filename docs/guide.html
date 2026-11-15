@@ -131,7 +131,7 @@ async test "a tool call" {
   <div class="out">assertions passed</div>
 
   <h2 class="section" id="checkpoint"><span class="at">#</span>6. Checkpoints and resumption</h2>
-  <p class="lede">A thread is a name. Pass a saver and the run checkpoints each node boundary under that name; pass the same name again and the run continues from what it had, budgets included.</p>
+  <p class="lede">A thread is a name. Pass a saver and the run checkpoints each node boundary under that name; pass the same name again and the run continues from what it had, budgets included. A finished thread starts a new turn, and <code>rewind</code> puts its head back on an earlier checkpoint when a decision has to be taken again.</p>
 <pre><code>async test "a checkpointed thread" {
   let provider = @fake.Fake::text("remembered")
   let saver = @moonstate.MemorySaver::new()
@@ -139,6 +139,24 @@ async test "a tool call" {
   assert_eq(agent.run("first", thread="t1"), "remembered")
   let snapshot = agent.state("t1").unwrap()
   assert_eq(snapshot.state.text(), "remembered")
+}
+
+async test "a thread taken back" {
+  let provider = @fake.Fake::new([
+    @moonmuse.Reply::new(@moonmuse.Message::assistant("first")),
+    @moonmuse.Reply::new(@moonmuse.Message::assistant("again")),
+  ])
+  let saver = @moonstate.MemorySaver::new()
+  let agent = @moonkoog.create_agent(provider, @moonkoog.AgentConfig::new("scripted"), saver~)
+  let _ = agent.run("first", thread="t2")
+  let mut point = ""
+  for snapshot in agent.history("t2") {
+    if point == "" && snapshot.next.contains("model") {
+      point = snapshot.id
+    }
+  }
+  agent.rewind("t2", point)
+  assert_eq(agent.continue_run("t2"), "again")
 }</code></pre>
   <div class="out">assertions passed</div>
 
