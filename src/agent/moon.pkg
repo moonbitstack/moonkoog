@@ -14,3 +14,10 @@ import {
   "moonbitstack/moonkoog/multi",
   "moonbitlang/async",
 } for "test"
+
+import {
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonmuse/fake",
+  "moonbitstack/moonstate",
+  "moonbitlang/async",
+} for "wbtest"
