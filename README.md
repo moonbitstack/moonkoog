@@ -7,7 +7,7 @@
 [![Check and Test](https://github.com/moonbitstack/moonkoog/actions/workflows/ci.yml/badge.svg)](https://github.com/moonbitstack/moonkoog/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](./LICENSE)
 
-[Home](https://moonbitstack.github.io/moonkoog/) · [Guide](https://moonbitstack.github.io/moonkoog/guide.html) · [API](https://moonbitstack.github.io/moonkoog/api.html) · [mooncakes](https://mooncakes.io/docs/moonbitstack/moonkoog)
+[Home](https://moonbitstack.github.io/moonkoog/) · [Guide](https://moonbitstack.github.io/moonkoog/guide.html) · [Tour](https://moonbitstack.github.io/moonkoog/tour.html) · [API](https://moonbitstack.github.io/moonkoog/api.html) · [mooncakes](https://mooncakes.io/docs/moonbitstack/moonkoog)
 
 </div>
 
