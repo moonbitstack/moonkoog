@@ -182,6 +182,7 @@ def page(sections: str, stats: str) -> str:
     <a href="index.html"><span class="at">#</span>overview</a>
     <a href="guide.html"><span class="at">#</span>guide</a>
     <a class="active" href="api.html"><span class="at">#</span>api</a>
+    <a href="tour.html"><span class="at">#</span>tour</a>
     <a href="https://github.com/moonbitstack/moonkoog"><span class="at">#</span>github</a>
   </nav>
   <div class="side-foot">

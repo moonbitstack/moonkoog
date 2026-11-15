@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>moonkoog — a run, step by step</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <a class="brand" href="index.html"><span class="dot"></span>moonkoog</a>
+  <p class="brand-sub">agents on the moonstate graph</p>
+  <nav class="side-nav">
+    <a href="index.html"><span class="at">#</span>overview</a>
+    <a href="guide.html"><span class="at">#</span>guide</a>
+    <a href="api.html"><span class="at">#</span>api</a>
+    <a class="active" href="tour.html"><span class="at">#</span>tour</a>
+    <a href="https://github.com/moonbitstack/moonkoog"><span class="at">#</span>github</a>
+  </nav>
+  <div class="side-foot">
+    <button class="theme-btn" id="theme">theme: system</button>
+  </div>
+</aside>
+<main>
+  <div class="hero">
+    <h1>a run, step by step</h1>
+    <p class="tag">A run is a walk over four positions. Pick a scenario and watch the walk this library took — recorded from the same event stream an application observes.</p>
+  </div>
+
+  <div class="tour-controls" role="group" aria-label="scenarios">
+    <button type="button" data-scenario="answer" aria-pressed="true">one answer</button>
+    <button type="button" data-scenario="tool" aria-pressed="false">one tool call</button>
+    <button type="button" data-scenario="cap" aria-pressed="false">a cap that holds</button>
+    <button type="button" class="ghost" id="replay">replay</button>
+    <span class="tour-count" id="count"></span>
+  </div>
+  <p class="lede" id="note"></p>
+
+  <div class="tour-grid">
+    <section class="tour-stage" aria-label="the graph">
+      <div class="tour-ask">
+        <span class="who">you</span>
+        <span class="what" id="ask"></span>
+      </div>
+      <svg id="stage" viewBox="0 0 520 280" role="img" aria-label="four positions: agent, model, tools, finish">
+        <defs>
+          <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" class="arrow"></path>
+          </marker>
+        </defs>
+
+        <path class="edge" data-edge="agent>model" d="M128 143 H 176" marker-end="url(#head)"></path>
+        <path class="edge" data-edge="model>tools" d="M274 130 C 300 106, 306 94, 334 84" marker-end="url(#head)"></path>
+        <path class="edge" data-edge="tools>model" d="M334 110 C 306 116, 300 124, 274 134" marker-end="url(#head)"></path>
+        <path class="edge" data-edge="model>finish" d="M274 158 C 300 186, 306 198, 334 208" marker-end="url(#head)"></path>
+        <path class="edge" data-edge="tools>finish" d="M390 106 V 186" marker-end="url(#head)"></path>
+
+        <g class="node" data-node="agent">
+          <rect x="16" y="118" width="112" height="50" rx="12"></rect>
+          <text class="t" x="72" y="140" text-anchor="middle">agent</text>
+          <text class="s" x="72" y="156" text-anchor="middle">start</text>
+        </g>
+        <g class="node" data-node="model">
+          <rect x="176" y="118" width="98" height="50" rx="12"></rect>
+          <text class="t" x="225" y="140" text-anchor="middle">model</text>
+          <text class="s" x="225" y="156" text-anchor="middle">one call</text>
+        </g>
+        <g class="node" data-node="tools">
+          <rect x="334" y="54" width="112" height="52" rx="12"></rect>
+          <text class="t" x="390" y="76" text-anchor="middle">tools</text>
+          <text class="s" x="390" y="92" text-anchor="middle">what was asked</text>
+        </g>
+        <g class="node" data-node="finish">
+          <rect x="334" y="186" width="112" height="52" rx="12"></rect>
+          <text class="t" x="390" y="208" text-anchor="middle">finish</text>
+          <text class="s" x="390" y="224" text-anchor="middle">settle the answer</text>
+        </g>
+      </svg>
+      <div class="tour-tools" id="tools-run" aria-label="tool calls in this run"></div>
+      <div class="tour-answer" id="answer" hidden>
+        <span class="k">answer</span>
+        <p id="answer-text"></p>
+      </div>
+    </section>
+
+    <section class="tour-side">
+      <div class="tour-log scroll" id="log" aria-live="polite" aria-label="the events the run reported"></div>
+    </section>
+  </div>
+
+  <p class="lede tour-source">The recording is made by <code>src/examples/browser</code> from the run's own events and rebuilt on every deploy, so this page cannot show a transcript older than the code. Nothing on it is drawn by hand.</p>
+  <noscript><p class="lede">The walk needs JavaScript: the recording is fetched and played back here.</p></noscript>
+
+  <footer>moonkoog · <a href="https://github.com/moonbitstack/moonkoog">github.com/moonbitstack/moonkoog</a></footer>
+</main>
+</div>
+<script src="site.js"></script>
+<script src="tour.js"></script>
+</body>
+</html>

@@ -195,3 +195,105 @@ footer { margin-top: 3rem; padding-top: 1.3rem; border-top: 1px solid var(--line
   .hero h1 { font-size: 2.2rem; }
   table { font-size: .85rem; }
 }
+
+/* The tour: a recorded run played back onto the strategy's four positions. */
+.tour-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; margin: 1.3rem 0 .5rem; }
+.tour-controls button {
+  font: inherit; font-size: .86rem; font-family: "IBM Plex Mono"; cursor: pointer;
+  background: var(--panel); color: var(--muted); border: 1px solid var(--line);
+  border-radius: 999px; padding: .32rem .8rem; transition: color .15s, border-color .15s, background .15s;
+}
+.tour-controls button:hover { color: var(--ink); border-color: color-mix(in oklab, var(--accent) 45%, var(--line)); }
+.tour-controls button[aria-pressed=true] {
+  color: var(--accent); border-color: color-mix(in oklab, var(--accent) 55%, transparent); background: var(--accent-soft);
+}
+.tour-controls button.ghost { border-style: dashed; }
+.tour-controls button:disabled { opacity: .5; cursor: default; }
+.tour-count { font-family: "IBM Plex Mono"; font-size: .78rem; color: var(--muted); margin-left: auto; }
+
+.tour-grid {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: .9rem; align-items: start; margin: .2rem 0 1.2rem;
+}
+.tour-stage {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: .8rem .9rem .5rem; box-shadow: var(--shadow);
+}
+.tour-stage svg { width: 100%; height: auto; display: block; overflow: visible; }
+.tour-stage .arrow { fill: color-mix(in oklab, var(--muted) 55%, transparent); }
+.tour-ask {
+  display: flex; gap: .55rem; align-items: baseline; margin: 0 0 .5rem;
+  font-size: .86rem; color: var(--muted);
+}
+.tour-ask .who {
+  font-family: "IBM Plex Mono"; font-size: .64rem; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--accent); border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+  background: var(--accent-soft); border-radius: 999px; padding: .06rem .42rem; flex: none;
+}
+.tour-ask .what { color: var(--ink); overflow-wrap: anywhere; }
+.tour-tools { display: flex; flex-wrap: wrap; gap: .35rem; min-height: 1.6rem; padding: .1rem 0 .4rem; }
+.tour-tools .chip {
+  font-family: "IBM Plex Mono"; font-size: .72rem; color: #0b7285;
+  border: 1px solid color-mix(in oklab, #0b7285 35%, transparent); border-radius: 999px;
+  padding: .04rem .5rem; animation: tour-in .18s ease-out both;
+}
+.tour-tools .chip.bad { color: #e5484d; border-color: color-mix(in oklab, #e5484d 40%, transparent); }
+@media (prefers-color-scheme: dark) { .tour-tools .chip { color: #66d9e8; border-color: color-mix(in oklab, #66d9e8 35%, transparent); } }
+:root[data-theme=dark] .tour-tools .chip { color: #66d9e8; border-color: color-mix(in oklab, #66d9e8 35%, transparent); }
+.node rect { fill: var(--panel-2); stroke: var(--line); stroke-width: 1.4; transition: stroke .18s, fill .18s; }
+.node .t { fill: var(--ink); font-family: "IBM Plex Mono"; font-size: 15px; letter-spacing: -.01em; }
+.node .s { fill: var(--muted); font-family: "IBM Plex Sans"; font-size: 11px; }
+.node.on rect { stroke: var(--accent); fill: var(--accent-soft); stroke-width: 2; }
+.node.on .t { fill: var(--accent); }
+.node.on .s { fill: color-mix(in oklab, var(--accent) 70%, var(--muted)); }
+.node.done rect { stroke: color-mix(in oklab, var(--out) 55%, var(--line)); }
+.node.on rect, .node.on.done rect { stroke: var(--accent); fill: var(--accent-soft); stroke-width: 2; }
+.node.bad rect { stroke: #e5484d; fill: color-mix(in oklab, #e5484d 12%, transparent); }
+.node.bad .t { fill: #e5484d; }
+.edge { fill: none; stroke: color-mix(in oklab, var(--muted) 45%, transparent); stroke-width: 1.7; transition: stroke .2s; }
+.edge.on { stroke: var(--accent); stroke-width: 2.2; }
+
+.tour-side { display: flex; flex-direction: column; gap: .6rem; min-width: 0; }
+.tour-log {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: .55rem .75rem; height: 368px; overflow: auto; box-shadow: var(--shadow);
+  font-family: "IBM Plex Mono"; font-size: .8rem; line-height: 1.5;
+}
+.tour-line {
+  display: flex; gap: .6rem; padding: .16rem 0; align-items: baseline;
+  border-bottom: 1px dashed color-mix(in oklab, var(--line) 70%, transparent);
+  animation: tour-in .18s ease-out both;
+}
+.tour-line:last-child { border-bottom: none; }
+@keyframes tour-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+.tour-line .k {
+  flex: 0 0 4.6rem; text-transform: uppercase; font-size: .64rem; letter-spacing: .07em;
+  color: var(--muted);
+}
+.tour-line .k.enter { color: var(--accent); }
+.tour-line .k.leave { color: color-mix(in oklab, var(--muted) 70%, var(--line)); }
+.tour-line .k.tool { color: #0b7285; }
+.tour-line .k.model { color: var(--out); }
+.tour-line .k.answer { color: var(--out); }
+.tour-line .k.stop { color: #e5484d; }
+@media (prefers-color-scheme: dark) {
+  .tour-line .k.tool { color: #66d9e8; }
+}
+:root[data-theme=dark] .tour-line .k.tool { color: #66d9e8; }
+.tour-line .body { color: var(--muted); overflow-wrap: anywhere; min-width: 0; }
+.tour-line .body b { color: var(--ink); font-weight: 500; }
+
+.tour-answer {
+  margin-top: .55rem;
+  background: var(--panel); border: 1px solid color-mix(in oklab, var(--out) 40%, var(--line));
+  border-left: 3px solid var(--out); border-radius: 0 12px 12px 0; padding: .55rem .8rem;
+}
+.tour-answer .k { font-family: "IBM Plex Mono"; font-size: .64rem; letter-spacing: .07em; text-transform: uppercase; color: var(--out); }
+.tour-answer p { margin: .2rem 0 0; font-size: .92rem; }
+.tour-source { font-size: .86rem; }
+
+@media (width <= 820px) {
+  .tour-grid { grid-template-columns: 1fr; }
+  .tour-log { height: 240px; }
+  .tour-count { margin-left: 0; }
+}
