@@ -11,5 +11,6 @@ import {
   "moonbitstack/moonmuse",
   "moonbitstack/moonmuse/fake",
   "moonbitstack/moonstate",
+  "moonbitstack/moonkoog/multi",
   "moonbitlang/async",
 } for "test"
