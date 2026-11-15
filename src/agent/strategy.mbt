@@ -76,9 +76,18 @@ pub fn Strategy::compile(
     let (name, kind) = pair
     match kind {
       Delegate(graph) =>
-        builder = builder.subgraph(name, graph, enter=state => state, leave=state => {
-          Adopt(state)
-        })
+        builder = builder.subgraph(
+          name,
+          graph,
+          enter=state => {
+            (runtime.events.on_subgraph_execution_starting)(name)
+            state
+          },
+          leave=state => {
+            (runtime.events.on_subgraph_execution_completed)(name, state.text())
+            Adopt(state)
+          },
+        )
       _ =>
         builder = builder.node(
           name,
@@ -150,11 +159,14 @@ fn node_run(runtime : Runtime, kind : NodeKind) -> NodeBody {
 ///|
 /// The one-run loop: ask, run whatever was asked for, ask again until the model answers in
 /// prose. This is the strategy an agent gets when nothing else is asked for.
-pub fn single_run() -> Strategy {
+///
+/// `streaming` asks each model call to report its deltas as they arrive
+/// (`on_llm_streaming_frame`), instead of handing back one finished reply.
+pub fn single_run(streaming~ : Bool = false) -> Strategy {
   Strategy::new("single_run")
   .node(agent_node, Start(then=model_node))
   .edge(agent_node, model_node)
-  .node(model_node, Request(Tools))
+  .node(model_node, Request(if streaming { Streaming } else { Tools }))
   .node(tools_node, Execute(All))
   .node(finish_node, Finish)
   .edge(model_node, tools_node)

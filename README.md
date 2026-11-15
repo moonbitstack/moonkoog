@@ -46,7 +46,7 @@ what it may spend, and what middleware wraps its calls.
 | Piece | What it is |
 |:--|:--|
 | **State** | `AgentState`: the conversation, the run's scratch space, and the calls it has spent. It round-trips through JSON, which is what makes a checkpoint a checkpoint. |
-| **Strategy** | Data: named nodes, what each one does, and the edges between them. `single_run`, `chat`, `react`, `answer_only`, `structured_output` and the plan-and-execute loop are presets; a node that decides where to go next returns a `Goto`. |
+| **Strategy** | Data: named nodes, what each one does, and the edges between them. `single_run`, `chat`, `react`, `answer_only`, `structured_output` and the plan-and-execute loop are presets, and `single_run(streaming = true)` asks the provider for deltas; a node that decides where to go next returns a `Goto`. |
 | **Nodes** | Four kinds cover a whole family of behaviours: a request (tools on, off, forced, several candidates, streamed, structured), a tool execution (all, or one), a history compression, and the exit. |
 | **Middleware** | A chain around each model and tool call, taking the rest of the chain as a function. |
 | **Events** | A run reports what it did; observers watch and interceptors rewrite the value in flight. |

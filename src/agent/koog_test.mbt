@@ -627,3 +627,425 @@ async test "koog: testStructuredOutputWithToolsStrategyDifferentConfigs — each
   assert_eq(meetings.run("four people").contains("\"slots\""), true)
   assert_eq(guests.run("who").contains("\"name\""), true)
 }
+
+///|
+async test "koog: test event handler for agent without nodes and tools — a run without tools reports three positions" {
+  let positions : Array[String] = []
+  let opened : Array[String] = []
+  let closed : Array[String] = []
+  let handlers = @agent.EventHandler::new()
+    .on_agent_starting(text => opened.push("agent:" + text))
+    .on_strategy_starting(name => opened.push("strategy:" + name))
+    .on_strategy_completed((name, _text) => closed.push("strategy:" + name))
+    .on_agent_completed(text => closed.push("agent:" + text))
+    .on_node_execution_starting(name => positions.push(name))
+  let agent = @agent.create_agent(
+    @fake.Fake::text("done"),
+    @agent.AgentConfig::new("test-model", name="bare").with_events(handlers),
+  )
+  let _ = agent.run("go")
+  // No tools are advertised, so the walk is the agent, one request, and the exit.
+  assert_eq(positions, ["agent", "model", "finish"])
+  assert_eq(opened, ["agent:go", "strategy:single_run"])
+  assert_eq(closed, ["strategy:single_run", "agent:done"])
+}
+
+///|
+async test "koog: test event handler several nodes — a longer walk reports each position in order" {
+  let positions : Array[String] = []
+  let handlers = @agent.EventHandler::new().on_node_execution_starting(name => {
+    positions.push(name)
+  })
+  let agent = @agent.create_agent(
+    @fake.Fake::new([
+      call_reply("add", Json::object(Map([]))),
+      text_reply("the total is 42"),
+      text_reply("{\"slots\": 3}"),
+    ]),
+    @agent.AgentConfig::new("test-model")
+    .with_tools([koog_adder()])
+    .with_structured(@agent.Structured::new("meeting", koog_meeting_schema()))
+    .with_strategy(@agent.structured_output())
+    .with_events(handlers),
+  )
+  let _ = agent.run("book a meeting")
+  assert_eq(positions, [
+    "agent", "model", "tools", "model", "structure", "finish",
+  ])
+}
+
+///|
+async test "koog: test event handler for agent with node execution error — the failing position is named" {
+  let failed : Array[(String, String)] = []
+  let ended : Array[String] = []
+  let handlers = @agent.EventHandler::new()
+    .on_node_execution_failed((name, reason) => failed.push((name, reason)))
+    .on_agent_execution_failed(reason => ended.push(reason))
+  let config = @agent.AgentConfig::new("test-model", name="broken")
+    .with_strategy(
+      @agent.Strategy::new("two-step")
+      .node(@agent.agent_node, @agent.Start(then="boom"))
+      .node("boom", @agent.Custom("boom"))
+      .node(@agent.finish_node, @agent.Finish)
+      .edge(@agent.agent_node, "boom")
+      .edge("boom", @agent.finish_node),
+    )
+    .with_node("boom", (_runtime, _state, _run) => fail("boom"))
+    .with_events(handlers)
+  let agent = @agent.create_agent(@fake.Fake::text("unused"), config)
+  let outcome = Ok(agent.run("go")) catch { error => Err(error) }
+  assert_eq(outcome is Err(_), true)
+  assert_eq(failed.length(), 1)
+  assert_eq(failed[0].0, "boom")
+  assert_eq(failed[0].1.contains("boom"), true)
+  assert_eq(ended.length(), 1)
+}
+
+///|
+async test "koog: test llm streaming events success — deltas arrive, then the reply" {
+  let frames : Array[String] = []
+  let started : Array[Int32] = []
+  let finished : Array[String] = []
+  let handlers = @agent.EventHandler::new()
+    .on_llm_streaming_starting(_request => started.push(1))
+    .on_llm_streaming_frame(chunk => frames.push(chunk))
+    .on_llm_streaming_completed(reply => {
+      finished.push(reply.message.text_content())
+    })
+  let agent = @agent.create_agent(
+    @fake.Fake::text("hello there"),
+    @agent.AgentConfig::new("test-model")
+    .with_strategy(@agent.single_run(streaming=true))
+    .with_events(handlers),
+  )
+  let answer = agent.run("greet")
+  assert_eq(answer, "hello there")
+  assert_eq(started.length(), 1)
+  // The scripted provider slices the text into five-character deltas.
+  assert_eq(frames.length(), 3)
+  assert_eq(frames[0], "hello")
+  assert_eq(finished, ["hello there"])
+}
+
+///|
+
+///|
+/// A provider whose stream breaks after the first delta — the failure the upstream case covers.
+struct BrokenStream {}
+
+///|
+impl @moonmuse.Provider for BrokenStream with fn chat(self, request) {
+  ignore(self)
+  ignore(request)
+  raise @moonmuse.LlmError::Stream("the stream broke")
+}
+
+///|
+impl @moonmuse.Provider for BrokenStream with fn stream(self, request, on_delta) {
+  ignore(self)
+  ignore(request)
+  on_delta(@moonmuse.Delta::Text("half"))
+  raise @moonmuse.LlmError::Stream("the stream broke")
+}
+
+///|
+impl @moonmuse.Provider for BrokenStream with fn embed(self, model, inputs) {
+  ignore(self)
+  ignore(model)
+  ignore(inputs)
+  raise @moonmuse.LlmError::Unsupported("no vectors here")
+}
+
+///|
+impl @moonmuse.Provider for BrokenStream with fn models(self) {
+  ignore(self)
+  []
+}
+
+///|
+async test "koog: test llm streaming events failure — a stream that breaks ends the run" {
+  let started : Array[Int32] = []
+  let frames : Array[String] = []
+  let finished : Array[String] = []
+  let handlers = @agent.EventHandler::new()
+    .on_llm_streaming_starting(_request => started.push(1))
+    .on_llm_streaming_frame(chunk => frames.push(chunk))
+    .on_llm_streaming_completed(reply => {
+      finished.push(reply.message.text_content())
+    })
+  let agent = @agent.create_agent(
+    BrokenStream::{ },
+    @agent.AgentConfig::new("test-model")
+    .with_strategy(@agent.single_run(streaming=true))
+    .with_events(handlers),
+  )
+  let outcome = Ok(agent.run("greet")) catch { error => Err(error) }
+  assert_eq(outcome is Err(_), true)
+  assert_eq(started.length(), 1)
+  // The delta that arrived before the break is reported; nothing completed.
+  assert_eq(frames, ["half"])
+  assert_eq(finished.length(), 0)
+}
+
+///|
+async test "koog: test subgraph execution events success — a nested graph is reported as one" {
+  let inner = @agent.create_agent(
+    @fake.Fake::text("inner answer"),
+    @agent.AgentConfig::new("test-model", name="inner"),
+  )
+  let nested : Array[String] = []
+  let texts : Array[String] = []
+  let handlers = @agent.EventHandler::new()
+    .on_subgraph_execution_starting(name => nested.push("start:" + name))
+    .on_subgraph_execution_completed((name, text) => {
+      nested.push("done:" + name)
+      texts.push(text)
+    })
+  let strategy = @agent.Strategy::new("outer")
+    .node(@agent.agent_node, @agent.Start(then="inner"))
+    .node("inner", @agent.Delegate(inner.graph()))
+    .node(@agent.finish_node, @agent.Finish)
+    .edge(@agent.agent_node, "inner")
+    .edge("inner", @agent.finish_node)
+  let outer = @agent.create_agent(
+    @fake.Fake::text("outer"),
+    @agent.AgentConfig::new("test-model", name="outer")
+    .with_strategy(strategy)
+    .with_events(handlers),
+  )
+  let answer = outer.run("go")
+  assert_eq(answer, "inner answer")
+  assert_eq(nested, ["start:inner", "done:inner"])
+  assert_eq(texts.length(), 1)
+  assert_eq(texts[0], "inner answer")
+}
+
+///|
+async test "koog: test pipeline interceptors for llm call events — request and reply are both rewritten" {
+  let seen : Array[String] = []
+  let handlers = @agent.EventHandler::new()
+    .intercept_llm_call_starting(request => {
+      seen.push("asked")
+      request.push(@moonmuse.Message::user("and one more thing"))
+    })
+    .intercept_llm_call_completed(_reply => {
+      @moonmuse.Reply::new(@moonmuse.Message::assistant("rewritten"))
+    })
+  let provider = @fake.Fake::text("original")
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model").with_events(handlers),
+  )
+  let answer = agent.run("go")
+  assert_eq(seen, ["asked"])
+  assert_eq(answer, "rewritten")
+  // The interceptor's extra message travelled to the provider.
+  let sent = provider.seen()[0]
+  assert_eq(
+    sent.messages[sent.messages.length() - 1].text_content(),
+    "and one more thing",
+  )
+}
+
+///|
+async test "koog: test pipeline interceptors before agent started events — the opening hooks run in order" {
+  let order : Array[String] = []
+  let handlers = @agent.EventHandler::new()
+    .on_agent_starting(_text => order.push("agent"))
+    .on_strategy_starting(_name => order.push("strategy"))
+    .on_llm_call_starting(_request => order.push("llm"))
+    .on_node_execution_starting(name => order.push("node:" + name))
+  let agent = @agent.create_agent(
+    @fake.Fake::text("ok"),
+    @agent.AgentConfig::new("test-model").with_events(handlers),
+  )
+  let _ = agent.run("go")
+  // The model-call hook fires inside the model position, so the node reports first.
+  assert_eq(order, [
+    "agent", "strategy", "node:agent", "node:model", "llm", "node:finish",
+  ])
+}
+
+///|
+async test "koog: test several agents share one pipeline — one handler set reports both runs" {
+  let texts : Array[String] = []
+  let handlers = @agent.EventHandler::new().on_agent_starting(text => {
+    texts.push(text)
+  })
+  let first = @agent.create_agent(
+    @fake.Fake::text("one"),
+    @agent.AgentConfig::new("test-model", name="first").with_events(handlers),
+  )
+  let second = @agent.create_agent(
+    @fake.Fake::text("two"),
+    @agent.AgentConfig::new("test-model", name="second").with_events(handlers),
+  )
+  let _ = first.run("from first")
+  let _ = second.run("from second")
+  assert_eq(texts, ["from first", "from second"])
+}
+
+///|
+async test "koog: test handlers are called in feature installation order" {
+  let order : Array[String] = []
+  let handlers = @agent.EventHandler::new()
+    .on_llm_call_starting(_request => order.push("first"))
+    .on_llm_call_starting(_request => order.push("second"))
+    .on_llm_call_starting(_request => order.push("third"))
+  let agent = @agent.create_agent(
+    @fake.Fake::text("ok"),
+    @agent.AgentConfig::new("test-model").with_events(handlers),
+  )
+  let _ = agent.run("go")
+  assert_eq(order, ["first", "second", "third"])
+}
+
+///|
+async test "koog: test AgentExecutionInfo for tool calls — the context names the agent, the model and the step" {
+  let seen : Array[String] = []
+  let tool = @agent.ToolSpec::new(
+    name="report",
+    description="Report the context it was given.",
+    schema=Json::object(Map([("type", Json::string("object"))])),
+    run=fn(_args, context) {
+      seen.push(
+        context.name + "|" + context.model + "|" + context.step.to_string(),
+      )
+      "reported"
+    },
+  )
+  let agent = @agent.create_agent(
+    @fake.Fake::new([
+      call_reply("report", Json::object(Map([]))),
+      text_reply("done"),
+    ]),
+    @agent.AgentConfig::new("test-model", name="profiler").with_tools([tool]),
+  )
+  let _ = agent.run("go")
+  assert_eq(seen.length(), 1)
+  // The name and the model come from the config; the step counts the supersteps taken so far.
+  assert_eq(seen[0].contains("profiler|test-model|"), true)
+}
+
+///|
+async test "koog: test filter llm call finish events — a handler can ignore a reply it does not want" {
+  let kept : Array[String] = []
+  let handlers = @agent.EventHandler::new().on_llm_call_completed(reply => {
+    let text = reply.message.text_content()
+    if text.contains("keep") {
+      kept.push(text)
+    }
+  })
+  let agent = @agent.create_agent(
+    @fake.Fake::text("keep this"),
+    @agent.AgentConfig::new("test-model").with_events(handlers),
+  )
+  let _ = agent.run("go")
+  assert_eq(kept, ["keep this"])
+  let quiet = @agent.create_agent(
+    @fake.Fake::text("discard this"),
+    @agent.AgentConfig::new("test-model").with_events(handlers),
+  )
+  let _ = quiet.run("go")
+  assert_eq(kept.length(), 1)
+}
+
+///|
+async test "koog: testConstructorWithDefaultStrategy — a config with no strategy runs the one-run loop" {
+  let config = @agent.AgentConfig::new("test-model")
+  assert_eq(config.name, "agent")
+  assert_eq(config.model, "test-model")
+  assert_eq(config.strategy is None, true)
+  assert_eq(config.tools.length(), 0)
+  assert_eq(config.limits.iterations, 50)
+  assert_eq(config.limits.tool_calls, 200)
+  let agent = @agent.create_agent(@fake.Fake::text("ok"), config)
+  assert_eq(agent.strategy_name(), "single_run")
+}
+
+///|
+async test "koog: testConstructorWithAllParameters — every field is kept as it was set" {
+  let tool = koog_adder()
+  let handlers = @agent.EventHandler::new()
+  let config = @agent.AgentConfig::new("test-model", name="all-of-it")
+    .with_instructions("be brief")
+    .with_tools([tool])
+    .with_strategy(@agent.chat())
+    .with_limits(@agent.Limits::new())
+    .with_events(handlers)
+  assert_eq(config.name, "all-of-it")
+  assert_eq(config.instructions, Some("be brief"))
+  assert_eq(config.tools.length(), 1)
+  assert_eq(config.tools[0].tool.name, "add")
+  assert_eq(config.strategy.unwrap().name, "chat")
+  // A strategy chosen this way carries no exit tool; the `chat` constructor is what adds one.
+  assert_eq(config.exit_tool is None, true)
+  let ending = @agent.AgentConfig::chat("test-model")
+  assert_eq(ending.exit_tool, Some("__exit__"))
+}
+
+///|
+async test "koog: testWithSystemPromptAllParameters — the instructions reach the model as a system message" {
+  let provider = @fake.Fake::text("ok")
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model").with_instructions(
+      "answer in one word",
+    ),
+  )
+  let _ = agent.run("hello")
+  let sent = provider.seen()[0]
+  let system = sent.messages.filter(message => message.role is System)
+  assert_eq(system.length(), 1)
+  assert_eq(system[0].text_content(), "answer in one word")
+}
+
+///|
+async test "koog: testWithSystemPromptDefaultParameters — a config without instructions sends none" {
+  let provider = @fake.Fake::text("ok")
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model"),
+  )
+  let _ = agent.run("hello")
+  let system = provider.seen()[0].messages.filter(message => {
+    message.role is System
+  })
+  assert_eq(system.length(), 0)
+}
+
+///|
+async test "koog: testZeroMaxIterations — a run with no model calls refuses at the first request" {
+  let agent = @agent.create_agent(
+    @fake.Fake::text("never"),
+    @agent.AgentConfig::new("test-model").with_limits({
+      iterations: 0,
+      tool_calls: 0,
+      steps: 10,
+    }),
+  )
+  let outcome = Ok(agent.run("go")) catch { error => Err(error) }
+  match outcome {
+    Ok(_) => fail("the run should have been refused")
+    Err(@agent.Exhausted(limit~)) => assert_eq(limit, 0)
+    Err(other) => fail("unexpected " + @agent.describe(other))
+  }
+}
+
+///|
+async test "koog: testNegativeMaxIterations — a negative budget refuses the same way" {
+  let agent = @agent.create_agent(
+    @fake.Fake::text("never"),
+    @agent.AgentConfig::new("test-model").with_limits({
+      iterations: -1,
+      tool_calls: -1,
+      steps: 10,
+    }),
+  )
+  let outcome = Ok(agent.run("go")) catch { error => Err(error) }
+  match outcome {
+    Ok(_) => fail("the run should have been refused")
+    Err(@agent.Exhausted(limit~)) => assert_eq(limit, -1)
+    Err(other) => fail("unexpected " + @agent.describe(other))
+  }
+}

@@ -34,7 +34,7 @@ pub fn react(reasoning_prompt? : String, interval? : Int32) -> @agent.Strategy
 
 pub fn[S : Eq + Hash] search(Array[@plan.GoapAction[S]], S, @plan.GoapGoal[S]) -> Array[String]?
 
-pub fn single_run() -> @agent.Strategy
+pub fn single_run(streaming? : Bool) -> @agent.Strategy
 
 pub fn structured_output(name? : String) -> @agent.Strategy
 

@@ -69,7 +69,7 @@ pub fn role_code(@moonmuse.Role) -> String
 
 pub fn role_of(String) -> @moonmuse.Role?
 
-pub fn single_run() -> Strategy
+pub fn single_run(streaming? : Bool) -> Strategy
 
 pub fn[T : @json.ToJson] store(String, T) -> Update
 

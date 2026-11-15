@@ -2,13 +2,22 @@
 /// How one model call is made: the middleware chain, outermost first, ending at the provider.
 /// Each middleware receives the rest of the chain, so a retry policy re-runs the ones inside it
 /// and a cache short-circuits them.
+///
+/// The event handler's two model-call interceptors wrap the whole chain: the request is the one
+/// they let through, and the reply is the one they hand back, so a hook sees every call whatever
+/// the strategy and whatever the mode.
 pub async fn pipeline_model(
   runtime : Runtime,
   context : RunContext,
   call : ModelCall,
   mode : RequestMode,
 ) -> ModelOutcome {
-  model_chain(runtime, 0, context, call, mode)
+  let asked = (runtime.events.on_llm_call_starting)(call.request)
+  let outcome = model_chain(runtime, 0, context, { request: asked, }, mode)
+  match outcome {
+    Replied(reply) => Replied((runtime.events.on_llm_call_completed)(reply))
+    other => other
+  }
 }
 
 ///|
