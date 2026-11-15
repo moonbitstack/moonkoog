@@ -1,0 +1,15 @@
+import {
+  "moonbitstack/moonkoog",
+  "moonbitstack/moonkoog/mcp",
+  "moonbitstack/moonmcp/client",
+  "moonbitstack/moonmuse",
+  "moonbitstack/moonmuse/fake",
+  "moonbitlang/core/json",
+  "moonbitlang/async",
+  "moonbitlang/async/process",
+  "moonbitlang/core/env",
+}
+
+supported_targets = "+native"
+
+pkgtype(kind: "executable")

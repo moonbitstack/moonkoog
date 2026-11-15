@@ -70,9 +70,106 @@ jobs:
             moon run --target native "$example"
           done
 
+  # Interoperability, never in one process: each check puts the other implementation in a child
+  # process and talks to it over a socket or a pipe. The peers are the official Python SDKs of
+  # the protocols, pinned in `integration/requirements.txt`.
+  interop:
+    permissions:
+      contents: read
+    runs-on: ubuntu-26.04
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: install moonbit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+
+      - name: install python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: install the peers
+        run: |
+          moon version --all
+          moon update
+          python -m pip install --upgrade pip
+          python -m pip install -r integration/requirements.txt
+
+      - name: build the interop programs
+        run: |
+          cd integration
+          moon build --target native
+
+      # The agent as an MCP client: the server is the official SDK's stdio server, and both
+      # tools are the peer's own functions.
+      - name: MCP — the agent calls a server in another process
+        run: |
+          cd integration
+          MOONKOOG_PYTHON=python moon run --target native src/mcp-peer -- peers/mcp_server.py
+
+      # The agent as an A2A client: the server is the official SDK's FastAPI app, started here.
+      - name: A2A — the agent calls an agent in another process
+        run: |
+          cd integration
+          MOONKOOG_PYTHON=python moon run --target native src/a2a-client -- peers/a2a_server.py
+
+      # The agent as an A2A server, driven by the official SDK's client.
+      - name: A2A — a client in another process calls the agent
+        run: |
+          cd integration
+          binary=$(find _build/native/debug/build -type f -name a2a-serve | head -1)
+          python peers/a2a_client.py "$binary"
+
+      # The agent on ACP over stdio, launched by the official SDK's client the way an editor
+      # launches it.
+      - name: ACP — an editor client drives the agent over stdio
+        run: |
+          cd integration
+          binary=$(find _build/native/debug/build -type f -name acp-agent | head -1)
+          python peers/acp_client.py "$binary"
+
+      # Checkpoints in a real PostgreSQL: one process stops for approval, the next one resumes
+      # the thread and runs the approved tool.
+      - name: PostgreSQL — a thread outlives the process that wrote it
+        env:
+          MOONKOOG_LIVE: "1"
+          PGHOST: 127.0.0.1
+          PGPORT: "5432"
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: postgres
+          MOONKOOG_PG_THREAD: interop-${{ github.run_id }}
+        run: |
+          cd integration
+          binary=$(find _build/native/debug/build -type f -name postgres-checkpoint | head -1)
+          "$binary" run
+          "$binary" resume
+
       # The fixture is generated from the other engine, so a change in either one shows up as a
       # difference here rather than as a test that quietly keeps passing.
       - name: the LangGraph fixture is current
         run: |
           python scripts/gen_langgraph_events.py
           git diff --exit-code src/agent/langgraph_fixture_wbtest.mbt
+
+      - name: the code in the docs compiles
+        run: python3 scripts/check_snippets.py
+

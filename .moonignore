@@ -5,3 +5,5 @@
 .git/
 _build/
 target/
+# Peer programs and their own module: test scaffolding, not part of the library.
+integration/

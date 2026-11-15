@@ -1,0 +1,14 @@
+import {
+  "moonbitstack/moonkoog",
+  "moonbitstack/moonkoog/a2a",
+  "moonbitstack/moona2a",
+  "moonbitstack/moona2a/asgi",
+  "moonbitstack/mooncat",
+  "moonbitstack/moonmuse/fake",
+  "moonbitlang/async",
+  "moonbitlang/core/env",
+}
+
+supported_targets = "+native"
+
+pkgtype(kind: "executable")

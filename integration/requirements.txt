@@ -1,0 +1,12 @@
+# The peers the interoperability checks talk to. Pinned: each one is an independent
+# implementation of the protocol, so the check is only meaningful against a known version.
+mcp==2.3.0
+a2a-sdk==1.3.0
+agent-client-protocol==1.0.0
+fastapi==0.163.0
+uvicorn==0.54.0
+httpx==0.28.1
+
+# The same graphs, run by the engine this library is compared with. Nothing in the library
+# depends on it; the fixture in `src/agent/langgraph_fixture_wbtest.mbt` is generated from it.
+langgraph==1.2.22
