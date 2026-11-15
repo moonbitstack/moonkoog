@@ -173,6 +173,7 @@ pub fn chat() -> Strategy {
   .node(model_node, Request(OnlyCalling))
   .node(tools_node, Execute(All))
   .node(finish_node, Finish)
+  .edge(model_node, tools_node)
   .edge(tools_node, model_node)
   .edge(tools_node, finish_node)
   .edge(model_node, finish_node)
@@ -186,6 +187,11 @@ pub fn react(
   reasoning_prompt~ : String = "Think about what you have learned and what the next step should be.",
   interval~ : Int32 = 1,
 ) -> Strategy {
+  guard interval >= 1 else {
+    abort(
+      "react: the reasoning interval is at least 1, not " + interval.to_string(),
+    )
+  }
   Strategy::new("re_act")
   .node(agent_node, Start(then=model_node))
   .edge(agent_node, model_node)
