@@ -1336,3 +1336,190 @@ async test "koog: agent runs to end and on second run starts from beginning agai
   assert_eq(texts.contains("two"), true)
   assert_eq(texts.contains("second answer"), true)
 }
+
+///|
+/// A strategy with one custom position between the start and the exit, which is what a caller
+/// who needs to drive the model or a tool by hand writes.
+fn koog_session_strategy(body : @agent.NodeFn) -> @agent.AgentConfig {
+  @agent.AgentConfig::new("test-model")
+  .with_strategy(
+    @agent.Strategy::new("session")
+    .node(@agent.agent_node, @agent.Start(then="step"))
+    .node("step", @agent.Custom("step"))
+    .node(@agent.finish_node, @agent.Finish)
+    .edge(@agent.agent_node, "step")
+    .edge("step", @agent.finish_node),
+  )
+  .with_node("step", body)
+}
+
+///|
+async test "koog: testRequestLLM — a node asks the model itself and appends the reply" {
+  let provider = @fake.Fake::new([text_reply("This is a test response")])
+  let config = koog_session_strategy(async fn(runtime, state, _run) {
+    let request = @agent.Runtime::request_for(runtime, @agent.NoTools, state)
+    let replied = Ok(runtime.provider().chat(request)) catch {
+      error => Err(error)
+    }
+    match replied {
+      Ok(reply) =>
+        [
+          @moonstate.Step::Write(@agent.Update::Append([reply.message])),
+          @moonstate.Step::Goto(@agent.finish_node),
+        ]
+      Err(_) => [@moonstate.Step::Goto(@agent.finish_node)]
+    }
+  })
+  let agent = @agent.create_agent(provider, config)
+  let answer = agent.run("go")
+  assert_eq(answer, "This is a test response")
+  // The reply was appended to the conversation, which is what the next turn would read.
+  assert_eq(provider.seen().length(), 1)
+}
+
+///|
+async test "koog: testRequestLLMWithoutTools — a hand-made request advertises no tools" {
+  let provider = @fake.Fake::new([text_reply("no tools here")])
+  let config = koog_session_strategy(async fn(runtime, state, _run) {
+    let request = @agent.Runtime::request_for(runtime, @agent.NoTools, state)
+    let replied = Ok(runtime.provider().chat(request)) catch {
+      error => Err(error)
+    }
+    match replied {
+      Ok(reply) =>
+        [
+          @moonstate.Step::Write(@agent.Update::Append([reply.message])),
+          @moonstate.Step::Goto(@agent.finish_node),
+        ]
+      Err(_) => [@moonstate.Step::Goto(@agent.finish_node)]
+    }
+  })
+  let agent = @agent.create_agent(provider, config.with_tools([koog_adder()]))
+  let answer = agent.run("go")
+  assert_eq(answer, "no tools here")
+  assert_eq(provider.seen()[0].tools.length(), 0)
+}
+
+///|
+async test "koog: testAppendPrompt — a node may add a message and keep the order" {
+  let provider = @fake.Fake::new([text_reply("Updated prompt response")])
+  let config = koog_session_strategy(async fn(runtime, state, _run) {
+    let with_extra = [@moonmuse.Message::user("Additional user message")]
+    let request = @agent.Runtime::request_for(runtime, @agent.NoTools, state)
+    let asked = @moonmuse.Request::new(
+      "test-model",
+      state.messages + with_extra,
+    )
+    ignore(request)
+    let replied = Ok(runtime.provider().chat(asked)) catch {
+      error => Err(error)
+    }
+    match replied {
+      Ok(reply) =>
+        [
+          @moonstate.Step::Write(@agent.Update::Append(with_extra)),
+          @moonstate.Step::Write(@agent.Update::Append([reply.message])),
+          @moonstate.Step::Goto(@agent.finish_node),
+        ]
+      Err(_) => [@moonstate.Step::Goto(@agent.finish_node)]
+    }
+  })
+  let agent = @agent.create_agent(provider, config)
+  let answer = agent.run("Initial user message")
+  assert_eq(answer, "Updated prompt response")
+  let sent = provider.seen()[0].messages
+  // The original turn is first and the added message follows it.
+  assert_eq(sent[0].text_content(), "Initial user message")
+  assert_eq(sent[sent.length() - 1].text_content(), "Additional user message")
+}
+
+///|
+async test "koog: testRewritePrompt — a node may replace the conversation it was given" {
+  let provider = @fake.Fake::new([text_reply("rewritten")])
+  let config = koog_session_strategy(async fn(runtime, state, _run) {
+    let replacement = [@moonmuse.Message::user("only this")]
+    ignore(state)
+    let request = @moonmuse.Request::new("test-model", replacement)
+    let replied = Ok(runtime.provider().chat(request)) catch {
+      error => Err(error)
+    }
+    match replied {
+      Ok(reply) =>
+        [
+          @moonstate.Step::Write(@agent.Update::Replace(replacement)),
+          @moonstate.Step::Write(@agent.Update::Append([reply.message])),
+          @moonstate.Step::Goto(@agent.finish_node),
+        ]
+      Err(_) => [@moonstate.Step::Goto(@agent.finish_node)]
+    }
+  })
+  let agent = @agent.create_agent(provider, config)
+  let answer = agent.run("this is dropped")
+  assert_eq(answer, "rewritten")
+  let sent = provider.seen()[0].messages
+  assert_eq(sent.length(), 1)
+  assert_eq(sent[0].text_content(), "only this")
+}
+
+///|
+async test "koog: testChangeModel — a node may ask a different model than the agent's own" {
+  let provider = @fake.Fake::new([text_reply("from the other model")])
+  let config = koog_session_strategy(async fn(runtime, state, _run) {
+    let request = @moonmuse.Request::new("other-model", state.messages)
+    let replied = Ok(runtime.provider().chat(request)) catch {
+      error => Err(error)
+    }
+    match replied {
+      Ok(reply) =>
+        [
+          @moonstate.Step::Write(@agent.Update::Append([reply.message])),
+          @moonstate.Step::Goto(@agent.finish_node),
+        ]
+      Err(_) => [@moonstate.Step::Goto(@agent.finish_node)]
+    }
+  })
+  let agent = @agent.create_agent(provider, config)
+  let answer = agent.run("go")
+  assert_eq(answer, "from the other model")
+  assert_eq(provider.seen()[0].model, "other-model")
+}
+
+///|
+async test "koog: testCallToolByName — a node calls a tool it looks up by name" {
+  let provider = @fake.Fake::new([text_reply("unused")])
+  let config = koog_session_strategy(async fn(runtime, state, run) {
+    let call = match runtime.tool("add") {
+      Some(spec) => {
+        let replied = Ok(
+          (spec.run)(
+            Json::object(
+              Map([("a", Json::number(2.0)), ("b", Json::number(40.0))]),
+            ),
+            runtime.context(run, state),
+          ),
+        ) catch {
+          error => Err(error)
+        }
+        match replied {
+          Ok(text) => text
+          Err(_) => "failed"
+        }
+      }
+      None => "no such tool"
+    }
+    [
+      @moonstate.Step::Write(
+        @agent.Update::Append([
+          @moonmuse.Message::new(Tool, [@moonmuse.Part::result("manual", call)]),
+        ]),
+      ),
+      @moonstate.Step::Write(@agent.Update::Answer(call)),
+      @moonstate.Step::Goto(@agent.finish_node),
+    ]
+  })
+  let agent = @agent.create_agent(provider, config.with_tools([koog_adder()]))
+  let answer = agent.run("go")
+  assert_eq(answer, "42")
+  // No model call was made: the node reached the tool directly.
+  assert_eq(provider.seen().length(), 0)
+}
