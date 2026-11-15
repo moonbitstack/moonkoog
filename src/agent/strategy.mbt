@@ -79,7 +79,11 @@ pub fn Strategy::compile(
         builder = builder.subgraph(name, graph, enter=state => state, leave=state => {
           Adopt(state)
         })
-      _ => builder = builder.node(name, node_run(runtime, kind))
+      _ =>
+        builder = builder.node(
+          name,
+          node_named(runtime, name, node_run(runtime, kind)),
+        )
     }
   }
   for pair in self.edges {
@@ -87,6 +91,29 @@ pub fn Strategy::compile(
     builder = builder.edge(from, to)
   }
   builder.compile(self.name, saver?, store?, executor?, limit=self.limit)
+}
+
+///|
+/// A node body with the boundary reports around it: the stream says which position the run is at,
+/// which is what a caller watching a run needs and what a stream translates into a protocol's
+/// per-node notifications. A node that raises still reports its failure before the run ends.
+fn node_named(runtime : Runtime, name : String, body : NodeBody) -> NodeBody {
+  async fn(state, run) {
+    (runtime.events.on_node_execution_starting)(name)
+    runtime.events.report(NodeStarted(name~))
+    let outcome = Ok(body(state, run)) catch { error => Err(error) }
+    match outcome {
+      Ok(steps) => {
+        (runtime.events.on_node_execution_completed)(name)
+        runtime.events.report(NodeFinished(name~))
+        steps
+      }
+      Err(error) => {
+        (runtime.events.on_node_execution_failed)(name, error_text(error))
+        raise error
+      }
+    }
+  }
 }
 
 ///|
