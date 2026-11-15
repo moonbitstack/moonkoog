@@ -12,6 +12,8 @@ import {
 // Values
 pub fn answer_only(name? : String) -> @agent.Strategy
 
+pub fn as_tool(@agent.Agent, name? : String, description? : String) -> @agent.ToolSpec
+
 pub fn calculator() -> @agent.ToolSpec
 
 pub fn chat() -> @agent.Strategy

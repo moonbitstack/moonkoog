@@ -55,7 +55,7 @@ pub using @plan {type GoapAction, type GoapGoal, plan_and_execute, search}
 
 ///|
 /// Teams: members handing the conversation to each other, or a supervisor choosing.
-pub using @multi {handoff_tool, supervisor, swarm}
+pub using @multi {as_tool, handoff_tool, supervisor, swarm}
 
 ///|
 /// The tools this module ships.

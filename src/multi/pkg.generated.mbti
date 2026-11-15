@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn as_tool(@agent.Agent, name? : String, description? : String) -> @agent.ToolSpec
+
 pub fn handoff_tool(Array[String]) -> @agent.ToolSpec
 
 pub let handoff_tool_name : String
