@@ -208,6 +208,30 @@ pub fn react(
 }
 
 ///|
+/// Tools first, then one answer that has to fit the schema the agent was configured with
+/// (`AgentConfig::with_structured`). The model may call tools for as many rounds as it needs;
+/// the prose answer that would have ended a `single_run` is instead sent to a final request in
+/// structured mode, whose answer is the JSON object the run returns.
+///
+/// Without a schema on the config the final request returns an empty answer, which is why the
+/// strategy is only worth choosing together with `with_structured`.
+pub fn structured_output(
+  name~ : String = "structured_output_with_tools",
+) -> Strategy {
+  Strategy::new(name)
+  .node(agent_node, Start(then=model_node))
+  .edge(agent_node, model_node)
+  .node(model_node, Turn(mode=Tools, then="structure"))
+  .node(tools_node, Execute(All))
+  .node("structure", Request(StructuredOutput))
+  .node(finish_node, Finish)
+  .edge(model_node, tools_node)
+  .edge(tools_node, model_node)
+  .edge(model_node, "structure")
+  .edge("structure", finish_node)
+}
+
+///|
 /// A strategy with a single model call: no tools, one answer. Useful as a judge, a classifier or
 /// the planner half of a plan-and-execute run.
 pub fn answer_only(name~ : String = "answer") -> Strategy {

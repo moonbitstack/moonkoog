@@ -91,3 +91,20 @@ async test "supervisor: the router picks the member and stops on FINISH" {
   assert_eq(writer_provider.hits(), 1)
   assert_eq(router.hits(), 2)
 }
+
+///|
+async test "koog: testAsToolWithDefaultName — a tool takes the agent's name unless given one" {
+  let helper = @agent.create_agent(
+    @fake.Fake::text("hi"),
+    @agent.AgentConfig::new("test-model", name="testAgent"),
+  )
+  let by_default = @multi.as_tool(helper)
+  assert_eq(by_default.tool.name, "testAgent")
+  let named = @multi.as_tool(
+    helper,
+    name="summon",
+    description="Ask the helper.",
+  )
+  assert_eq(named.tool.name, "summon")
+  assert_eq(named.tool.description, "Ask the helper.")
+}

@@ -108,7 +108,29 @@ async test "a tool call" {
 }</code></pre>
   <div class="out">assertions passed</div>
 
-  <h2 class="section" id="checkpoint"><span class="at">#</span>5. Checkpoints and resumption</h2>
+  <h2 class="section" id="structured"><span class="at">#</span>5. Structured answers</h2>
+  <p class="lede">When the answer has to fit a schema, give the agent one and run the preset that asks for it: tools work as usual, and the last request is held to the schema. A reply that does not fit is sent back with the failure, twice, before the run gives up.</p>
+<pre><code>async test "a structured answer" {
+  let schema = Json::object(Map([
+    ("type", Json::string("object")),
+    ("properties", Json::object(Map([
+      ("slots", Json::object(Map([("type", Json::string("number"))]))),
+    ]))),
+  ]))
+  let provider = @fake.Fake::new([
+    @moonmuse.Reply::new(@moonmuse.Message::assistant("{\"slots\": 3}")),
+  ])
+  let agent = @moonkoog.create_agent(
+    provider,
+    @moonkoog.AgentConfig::new("scripted")
+    .with_structured(@moonkoog.Structured::new("meeting", schema))
+    .with_strategy(@moonkoog.structured_output()),
+  )
+  assert_eq(agent.run("three of us").contains("\"slots\""), true)
+}</code></pre>
+  <div class="out">assertions passed</div>
+
+  <h2 class="section" id="checkpoint"><span class="at">#</span>6. Checkpoints and resumption</h2>
   <p class="lede">A thread is a name. Pass a saver and the run checkpoints each node boundary under that name; pass the same name again and the run continues from what it had, budgets included.</p>
 <pre><code>async test "a checkpointed thread" {
   let provider = @fake.Fake::text("remembered")
@@ -120,7 +142,7 @@ async test "a tool call" {
 }</code></pre>
   <div class="out">assertions passed</div>
 
-  <h2 class="section" id="plan"><span class="at">#</span>6. Planning</h2>
+  <h2 class="section" id="plan"><span class="at">#</span>7. Planning</h2>
   <p class="lede">Plan-and-execute writes the steps first, then works through them. A step whose tool call failed sends the run back to the planner.</p>
 <pre><code>async test "a plan" {
   let provider = @fake.Fake::new([
@@ -137,7 +159,7 @@ async test "a tool call" {
 }</code></pre>
   <div class="out">assertions passed</div>
 
-  <h2 class="section" id="team"><span class="at">#</span>7. Teams</h2>
+  <h2 class="section" id="team"><span class="at">#</span>8. Teams</h2>
   <p class="lede">A team is a strategy whose nodes are agents. A member hands the conversation on with the <code>handoff</code> tool; the router follows the marker it leaves.</p>
 <pre><code>async test "a team" {
   let first = @fake.Fake::new([
@@ -189,7 +211,7 @@ async test "a tool call" {
 }</code></pre>
   <div class="out">assertions passed</div>
 
-  <h2 class="section" id="protocols"><span class="at">#</span>8. Behind a protocol</h2>
+  <h2 class="section" id="protocols"><span class="at">#</span>9. Behind a protocol</h2>
   <p class="lede">The adapters are translations. This one serves an agent over MCP and calls it back over the in-memory transport, which is the same code path a stdio server takes.</p>
 <pre><code>async test "an agent behind MCP" {
   let served = @moonkoog.create_agent(
@@ -203,7 +225,7 @@ async test "a tool call" {
 }</code></pre>
   <div class="out">assertions passed</div>
 
-  <h2 class="section" id="traces"><span class="at">#</span>9. Traces</h2>
+  <h2 class="section" id="traces"><span class="at">#</span>10. Traces</h2>
   <p class="lede">The <code>otel</code> package turns a run into two spans — the agent and each tool call — with the attribute names a GenAI collector expects.</p>
 <pre><code>async test "a trace" {
   let sink = @trace.Recorder::new()

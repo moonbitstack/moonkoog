@@ -423,3 +423,207 @@ async test "koog: checkpoint serialization — a thread reads back with the same
   assert_eq(read.id, written.id)
   assert_eq(read.state.messages()[0].text_content(), "hello")
 }
+
+///|
+/// A reply that asks for two tool calls in the same turn — the parallel-tools case.
+fn koog_parallel_calls(
+  name : String,
+  first : Json,
+  second : Json,
+) -> @moonmuse.Reply {
+  @moonmuse.Reply::new(
+    @moonmuse.Message::new(Assistant, [
+      @moonmuse.Part::call("call_1", name, first),
+      @moonmuse.Part::call("call_2", name, second),
+    ]),
+    finish=@moonmuse.Finish::Calls,
+  )
+}
+
+///|
+/// A schema with one required number, which is the shape the two simple cases ask for.
+fn koog_meeting_schema() -> Json {
+  Json::object(
+    Map([
+      ("type", Json::string("object")),
+      (
+        "properties",
+        Json::object(
+          Map([("slots", Json::object(Map([("type", Json::string("number"))])))]),
+        ),
+      ),
+      ("required", Json::array([Json::string("slots")])),
+    ]),
+  )
+}
+
+///|
+async test "koog: testStructuredOutputWithToolsStrategyDefaultName — tools, then an answer that fits" {
+  let strategy = @agent.structured_output()
+  assert_eq(strategy.name, "structured_output_with_tools")
+  let provider = @fake.Fake::new([
+    call_reply(
+      "add",
+      Json::object(Map([("a", Json::number(2.0)), ("b", Json::number(40.0))])),
+    ),
+    text_reply("the total is 42"),
+    text_reply("{\"slots\": 3}"),
+  ])
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model")
+    .with_tools([koog_adder()])
+    .with_structured(@agent.Structured::new("meeting", koog_meeting_schema()))
+    .with_strategy(strategy),
+  )
+  let events : Array[@agent.Event] = []
+  let answer = agent.stream("book a meeting for three", event => {
+    events.push(event)
+  })
+  assert_eq(answer.contains("\"slots\""), true)
+  assert_eq(answer.contains("3"), true)
+  // The run walks the structure node, which is where the schema is enforced.
+  assert_eq(koog_nodes(events).contains("structure"), true)
+  assert_eq(provider.seen().length(), 3)
+}
+
+///|
+async test "koog: testStructuredOutputWithToolsStrategyWithParallelTools — two calls, one answer" {
+  let provider = @fake.Fake::new([
+    koog_parallel_calls(
+      "add",
+      Json::object(Map([("a", Json::number(1.0)), ("b", Json::number(1.0))])),
+      Json::object(Map([("a", Json::number(2.0)), ("b", Json::number(2.0))])),
+    ),
+    text_reply("both sums are in"),
+    text_reply("{\"slots\": 2}"),
+  ])
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model")
+    .with_tools([koog_adder()])
+    .with_structured(@agent.Structured::new("meeting", koog_meeting_schema()))
+    .with_strategy(@agent.structured_output()),
+  )
+  let answer = agent.run("two sums, then a meeting")
+  assert_eq(answer.contains("\"slots\""), true)
+  // Both calls of the same reply are executed before the model is asked again.
+  let events : Array[@agent.Event] = []
+  let _ = @agent.create_agent(
+    @fake.Fake::new([
+      koog_parallel_calls(
+        "add",
+        Json::object(Map([("a", Json::number(1.0)), ("b", Json::number(1.0))])),
+        Json::object(Map([("a", Json::number(2.0)), ("b", Json::number(2.0))])),
+      ),
+      text_reply("done"),
+      text_reply("{\"slots\": 2}"),
+    ]),
+    @agent.AgentConfig::new("test-model")
+    .with_tools([koog_adder()])
+    .with_structured(@agent.Structured::new("meeting", koog_meeting_schema()))
+    .with_strategy(@agent.structured_output()),
+  ).stream("again", event => events.push(event))
+  let mut executed = 0
+  for event in events {
+    if event is ToolStarted(_) {
+      executed = executed + 1
+    }
+  }
+  assert_eq(executed, 2)
+}
+
+///|
+async test "koog: testStructuredOutputWithToolsStrategyComplexTypes — a nested object survives" {
+  let schema = Json::object(
+    Map([
+      ("type", Json::string("object")),
+      (
+        "properties",
+        Json::object(
+          Map([
+            (
+              "who",
+              Json::object(
+                Map([
+                  ("type", Json::string("object")),
+                  (
+                    "properties",
+                    Json::object(
+                      Map([
+                        (
+                          "name",
+                          Json::object(Map([("type", Json::string("string"))])),
+                        ),
+                        (
+                          "tags",
+                          Json::object(
+                            Map([
+                              ("type", Json::string("array")),
+                              (
+                                "items",
+                                Json::object(
+                                  Map([("type", Json::string("string"))]),
+                                ),
+                              ),
+                            ]),
+                          ),
+                        ),
+                      ]),
+                    ),
+                  ),
+                ]),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    ]),
+  )
+  let provider = @fake.Fake::new([
+    text_reply(
+      "{\"who\": {\"name\": \"ada\", \"tags\": [\"host\", \"guest\"]}}",
+    ),
+  ])
+  let agent = @agent.create_agent(
+    provider,
+    @agent.AgentConfig::new("test-model")
+    .with_structured(@agent.Structured::new("guest", schema))
+    .with_strategy(@agent.structured_output()),
+  )
+  let answer = agent.run("who is coming?")
+  assert_eq(answer.contains("ada"), true)
+  assert_eq(answer.contains("host"), true)
+  assert_eq(answer.contains("guest"), true)
+}
+
+///|
+async test "koog: testStructuredOutputWithToolsStrategyDifferentConfigs — each agent keeps its schema" {
+  let slots = @fake.Fake::new([text_reply("{\"slots\": 4}")])
+  let meetings = @agent.create_agent(
+    slots,
+    @agent.AgentConfig::new("test-model")
+    .with_structured(@agent.Structured::new("meeting", koog_meeting_schema()))
+    .with_strategy(@agent.structured_output()),
+  )
+  let name_schema = Json::object(
+    Map([
+      ("type", Json::string("object")),
+      (
+        "properties",
+        Json::object(
+          Map([("name", Json::object(Map([("type", Json::string("string"))])))]),
+        ),
+      ),
+    ]),
+  )
+  let people = @fake.Fake::new([text_reply("{\"name\": \"ada\"}")])
+  let guests = @agent.create_agent(
+    people,
+    @agent.AgentConfig::new("test-model")
+    .with_structured(@agent.Structured::new("guest", name_schema))
+    .with_strategy(@agent.structured_output()),
+  )
+  assert_eq(meetings.run("four people").contains("\"slots\""), true)
+  assert_eq(guests.run("who").contains("\"name\""), true)
+}

@@ -36,6 +36,8 @@ pub fn[S : Eq + Hash] search(Array[@plan.GoapAction[S]], S, @plan.GoapGoal[S]) -
 
 pub fn single_run() -> @agent.Strategy
 
+pub fn structured_output(name? : String) -> @agent.Strategy
+
 pub fn supervisor(@agent.AgentConfig, Array[@agent.Agent], instruction? : String, max_turns? : Int32) -> @agent.AgentConfig
 
 pub fn swarm(@agent.AgentConfig, Array[@agent.Agent]) -> @agent.AgentConfig
@@ -94,6 +96,8 @@ pub using @agent {type RunContext}
 pub using @middleware {type ShellTool}
 
 pub using @agent {type Strategy}
+
+pub using @agent {type Structured}
 
 pub using @middleware {type Summarization}
 

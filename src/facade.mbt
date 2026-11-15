@@ -15,6 +15,7 @@ pub using @agent {
   type RequestMode,
   type RunContext,
   type Strategy,
+  type Structured,
   type ToolOutcome,
   type ToolSpec,
   type Tools,
@@ -27,6 +28,7 @@ pub using @agent {
   chat,
   react,
   answer_only,
+  structured_output,
 }
 
 ///|
