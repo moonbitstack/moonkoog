@@ -205,7 +205,9 @@ The test suite runs on all four targets, and every case below passes.
   an MCP server's tools, answers an A2A client, delegates to an A2A server, and is driven by an
   ACP client over stdio.
 - Checkpoints are checked against a real PostgreSQL: one process stops for approval, another one
-  resumes the thread and runs the approved tool.
+  resumes the thread and runs the approved tool. A thread can be rewound to an earlier checkpoint,
+  and a conversation recorded under a wider tool set is rewritten, not rejected, when the agent
+  that resumes it no longer offers those tools.
 - Nothing is checked against a live model provider: a key and a network are the caller's, and the
   scripted provider is what a run's own tests use.
 

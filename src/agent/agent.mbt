@@ -85,6 +85,7 @@ pub(all) struct AgentConfig {
   structured : Structured?
   events : EventHandler
   exit_tool : String?
+  missing_tools : MissingTools
   nodes : Map[String, NodeFn]
 }
 
@@ -106,6 +107,7 @@ pub fn AgentConfig::new(
     structured: None,
     events: EventHandler::new(),
     exit_tool: None,
+    missing_tools: Keep,
     nodes: Map([]),
   }
 }
@@ -199,6 +201,16 @@ pub fn AgentConfig::with_limits(
   limits : Limits,
 ) -> AgentConfig {
   { ..self, limits, }
+}
+
+///|
+/// A copy that rewrites the tool calls and results naming tools it does not have, so a
+/// conversation recorded under a wider tool set can still be sent to a provider.
+pub fn AgentConfig::with_missing_tools(
+  self : AgentConfig,
+  policy : MissingTools,
+) -> AgentConfig {
+  { ..self, missing_tools: policy, }
 }
 
 ///|
@@ -345,6 +357,7 @@ pub fn create_agent(
     structured: config.structured,
     chooser: None,
     exit_tool: config.exit_tool,
+    missing_tools: config.missing_tools,
     custom: config.nodes,
     nodes: [],
   }

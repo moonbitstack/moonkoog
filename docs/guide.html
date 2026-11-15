@@ -131,7 +131,7 @@ async test "a tool call" {
   <div class="out">assertions passed</div>
 
   <h2 class="section" id="checkpoint"><span class="at">#</span>6. Checkpoints and resumption</h2>
-  <p class="lede">A thread is a name. Pass a saver and the run checkpoints each node boundary under that name; pass the same name again and the run continues from what it had, budgets included. A finished thread starts a new turn, and <code>rewind</code> puts its head back on an earlier checkpoint when a decision has to be taken again.</p>
+  <p class="lede">A thread is a name. Pass a saver and the run checkpoints each node boundary under that name; pass the same name again and the run continues from what it had, budgets included. A finished thread starts a new turn, and <code>rewind</code> puts its head back on an earlier checkpoint when a decision has to be taken again. A thread outlives the configuration that wrote it, so an agent built without a tool can still read the conversation that used it: <code>with_missing_tools(Convert)</code> turns those calls and results into text before the request leaves.</p>
 <pre><code>async test "a checkpointed thread" {
   let provider = @fake.Fake::text("remembered")
   let saver = @moonstate.MemorySaver::new()

@@ -21,6 +21,8 @@ pub fn chat() -> Strategy
 
 pub async fn compress(Runtime, RunContext, Array[@moonmuse.Message], HistoryPolicy) -> Compressed
 
+pub fn convert_missing_tools(Array[@moonmuse.Message], Array[String], MissingTools) -> Array[@moonmuse.Message]
+
 pub fn create_agent(&@moonmuse.Provider, AgentConfig, saver? : &@moonstate.Saver, store? : &@moonstate.Store, executor? : &@moonstate.Executor) -> Agent raise @moonstate.Refused
 
 pub let default_limits : Limits
@@ -116,6 +118,7 @@ pub(all) struct AgentConfig {
   structured : Structured?
   events : EventHandler
   exit_tool : String?
+  missing_tools : MissingTools
   nodes : Map[String, async (Runtime, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]]
 }
 pub fn AgentConfig::chat(String, name? : String) -> Self
@@ -126,6 +129,7 @@ pub fn AgentConfig::with_events(Self, EventHandler) -> Self
 pub fn AgentConfig::with_instructions(Self, String) -> Self
 pub fn AgentConfig::with_limits(Self, Limits) -> Self
 pub fn AgentConfig::with_middleware(Self, &Middleware) -> Self
+pub fn AgentConfig::with_missing_tools(Self, MissingTools) -> Self
 pub fn AgentConfig::with_node(Self, String, async (Runtime, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]) -> Self
 pub fn AgentConfig::with_options(Self, Options) -> Self
 pub fn AgentConfig::with_strategy(Self, Strategy) -> Self
@@ -243,6 +247,12 @@ pub fn Limits::with_iterations(Self, Int32) -> Self
 pub fn Limits::with_steps(Self, Int32) -> Self
 pub fn Limits::with_tool_calls(Self, Int32) -> Self
 
+pub(all) enum MissingTools {
+  Keep
+  Convert
+  ConvertAll
+}
+
 pub(all) struct ModelCall {
   request : @moonmuse.Request
 }
@@ -329,6 +339,7 @@ pub struct Runtime {
   structured : Structured?
   chooser : &Chooser?
   exit_tool : String?
+  missing_tools : MissingTools
   custom : Map[String, async (Runtime, AgentState, @moonstate.Run) -> Array[@moonstate.Step[AgentState, Update]]]
   nodes : Array[String]
 }

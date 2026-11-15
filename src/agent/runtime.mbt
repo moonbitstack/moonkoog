@@ -28,6 +28,7 @@ pub struct Runtime {
   structured : Structured?
   chooser : &Chooser?
   exit_tool : String?
+  missing_tools : MissingTools
   custom : Map[String, NodeFn]
   /// The node names of the strategy this runtime was compiled for, so a tool that asks for a
   /// handover can tell a node of this graph from one that belongs to the agent that called it.

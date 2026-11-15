@@ -100,7 +100,13 @@ pub fn Runtime::request_for(
     ForceOne(name) => @moonmuse.ToolChoice::Named(name)
     _ => self.options.choice
   }
-  let messages = state.messages
+  // The conversation as this agent can read it: with a converting policy, parts naming tools it
+  // does not offer are replaced by text before they reach the provider.
+  let messages = convert_missing_tools(
+    state.messages,
+    self.tools.specs().map(spec => spec.tool.name),
+    self.missing_tools,
+  )
   let stop = self.options.stop
   let extra = self.options.extra
   match (self.options.temperature, self.options.max_tokens) {

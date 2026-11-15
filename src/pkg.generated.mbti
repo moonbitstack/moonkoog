@@ -73,6 +73,8 @@ pub using @middleware {type HumanInTheLoop}
 
 pub using @agent {type Limits}
 
+pub using @agent {type MissingTools}
+
 pub using @middleware {type ModelCallLimit}
 
 pub using @middleware {type ModelFallback}

@@ -9,6 +9,7 @@ pub using @agent {
   type EventHandler,
   type Limits,
   trait Middleware,
+  type MissingTools,
   type ModelOutcome,
   type NodeKind,
   type Options,

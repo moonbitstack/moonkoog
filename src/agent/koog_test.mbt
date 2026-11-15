@@ -1694,3 +1694,54 @@ async test "koog: testLastSuccessfulNodeIsNotExecutedTwice — a resumed run doe
   assert_eq(positions.contains("agent"), false)
   assert_eq(positions.contains("model"), true)
 }
+
+///|
+async test "koog: a thread recorded with a tool is readable by an agent without it" {
+  let first = @fake.Fake::new([
+    call_reply(
+      "add",
+      Json::object(Map([("a", Json::number(2.0)), ("b", Json::number(40.0))])),
+    ),
+    text_reply("the total is 42"),
+  ])
+  let saver = @moonstate.MemorySaver::new()
+  let with_tool = @agent.create_agent(
+    first,
+    @agent.AgentConfig::new("test-model").with_tools([koog_adder()]),
+    saver~,
+  )
+  let _ = with_tool.run("what is 2 + 40?", thread="t")
+  // A second agent, built without the tool, continues the same thread.
+  let second = @fake.Fake::new([text_reply("I cannot add any more")])
+  let without_tool = @agent.create_agent(
+    second,
+    @agent.AgentConfig::new("test-model").with_missing_tools(@agent.Convert),
+    saver~,
+  )
+  let answer = without_tool.run("and now?", thread="t")
+  assert_eq(answer, "I cannot add any more")
+  // What the provider was sent carries no call and no result, only text that names them.
+  let sent = second.seen()[0]
+  let mut calls = 0
+  let mut results = 0
+  let mut described = 0
+  for message in sent.messages {
+    calls = calls + message.calls().length()
+    results = results + message.results().length()
+    let text = message.text_content()
+    if text.contains("\"tool_name\":\"add\"") {
+      described = described + 1
+    }
+  }
+  assert_eq(calls, 0)
+  assert_eq(results, 0)
+  assert_eq(described, 2)
+  // The thread itself still holds the call and the result: the rewrite is a view of the request,
+  // not an edit of what happened.
+  let kept = with_tool.state("t").unwrap()
+  let mut kept_results = 0
+  for message in kept.state.messages() {
+    kept_results = kept_results + message.results().length()
+  }
+  assert_eq(kept_results, 1)
+}
