@@ -6,7 +6,11 @@
 
 ///|
 /// A reply that asks for one tool call.
-fn call_reply(name : String, args : Json, id~ : String = "call_1") -> @moonmuse.Reply {
+fn call_reply(
+  name : String,
+  args : Json,
+  id~ : String = "call_1",
+) -> @moonmuse.Reply {
   @moonmuse.Reply::new(
     @moonmuse.Message::new(Assistant, [@moonmuse.Part::call(id, name, args)]),
     finish=@moonmuse.Finish::Calls,
@@ -58,11 +62,7 @@ fn fail(reason : String) -> Unit {
 /// The check, with the peer started into `group` so that the server cannot outlive it.
 async fn check(group : @async.TaskGroup[Unit]) -> Unit {
   let args = @env.args()
-  let script = if args.length() > 1 {
-    args[1]
-  } else {
-    "peers/a2a_server.py"
-  }
+  let script = if args.length() > 1 { args[1] } else { "peers/a2a_server.py" }
   let python = @env.get_env_var("MOONKOOG_PYTHON").unwrap_or("python3")
 
   let (from_peer, sink) = @process.read_from_process()
@@ -81,20 +81,21 @@ async fn check(group : @async.TaskGroup[Unit]) -> Unit {
     "http://127.0.0.1:" + port.to_string(),
   )
   let provider = @fake.Fake::new([
-    call_reply("python_peer", Json::object(Map([("message", Json::string("hello"))]))),
+    call_reply(
+      "python_peer",
+      Json::object(Map([("message", Json::string("hello"))])),
+    ),
     text_reply("done"),
   ])
   let agent = @moonkoog.create_agent(
     provider,
-    @moonkoog.AgentConfig::new("scripted", name="delegator").with_tools(
-      [
-        @a2a.remote_tool(
-          transport,
-          name="python_peer",
-          description="Ask the agent on the other side of the socket.",
-        ),
-      ],
-    ),
+    @moonkoog.AgentConfig::new("scripted", name="delegator").with_tools([
+      @a2a.remote_tool(
+        transport,
+        name="python_peer",
+        description="Ask the agent on the other side of the socket.",
+      ),
+    ]),
   )
   let answer = agent.run("delegate this")
   let remote = last_result(provider)

@@ -6,7 +6,11 @@
 
 ///|
 /// A reply that asks for one tool call.
-fn call_reply(name : String, args : Json, id~ : String = "call_1") -> @moonmuse.Reply {
+fn call_reply(
+  name : String,
+  args : Json,
+  id~ : String = "call_1",
+) -> @moonmuse.Reply {
   @moonmuse.Reply::new(
     @moonmuse.Message::new(Assistant, [@moonmuse.Part::call(id, name, args)]),
     finish=@moonmuse.Finish::Calls,
@@ -75,13 +79,7 @@ async fn check(group : @async.TaskGroup[Unit]) -> Unit {
   // One pipe each way: the peer reads requests from its stdin and writes answers to its stdout.
   let (from_peer, sink) = @process.read_from_process()
   let (source, to_peer) = @process.write_to_process()
-  let child = @process.spawn(
-    group,
-    python,
-    [script],
-    stdin=source,
-    stdout=sink,
-  )
+  let child = @process.spawn(group, python, [script], stdin=source, stdout=sink)
 
   // The frame is one line per message, which is what `Lines` carries: the framing adds the
   // newline, so the two closures move the text and nothing else.

@@ -145,7 +145,7 @@ pub(all) struct AgentState {
   tool_calls : Int32
   answer : String?
 }
-pub fn AgentState::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn AgentState::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn[T : @json.FromJson] AgentState::get(Self, String) -> T?
 pub fn AgentState::messages(Self) -> Array[@moonmuse.Message]
 pub fn AgentState::new() -> Self
@@ -405,7 +405,7 @@ pub(all) enum Update {
   Answer(String)
   Adopt(AgentState)
 }
-pub fn Update::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Update::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Update::to_json(Self) -> @json.Json
 pub impl @json.FromJson for Update
 pub impl @json.ToJson for Update

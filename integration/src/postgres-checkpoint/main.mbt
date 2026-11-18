@@ -11,7 +11,9 @@
 /// A reply that asks for one tool call.
 fn call_reply(name : String, args : Json) -> @moonmuse.Reply {
   @moonmuse.Reply::new(
-    @moonmuse.Message::new(Assistant, [@moonmuse.Part::call("call_1", name, args)]),
+    @moonmuse.Message::new(Assistant, [
+      @moonmuse.Part::call("call_1", name, args),
+    ]),
     finish=@moonmuse.Finish::Calls,
   )
 }
@@ -96,12 +98,14 @@ fn message_text(message : @moonmuse.Message) -> String {
 ///|
 /// The conversation as `role: text` lines, newest last, which is what a resumed run carries.
 fn transcript(state : @agent.AgentState) -> Array[String] {
-  state.messages().map(message => role_name(message.role) + ": " + message_text(message))
+  state
+  .messages()
+  .map(message => role_name(message.role) + ": " + message_text(message))
 }
 
 ///|
 /// Stop the run for approval and leave the thread in the table.
-async fn start_run(thread : String) -> Int32 raise {
+async fn start_run(thread : String) -> Int32 {
   let connection = connect()
   let saver = @sql.saver(connection)
   saver.setup()
@@ -116,11 +120,14 @@ async fn start_run(thread : String) -> Int32 raise {
     .with_tools([marker()]),
     saver~,
   )
-  let stopped = Ok(agent.run("do the work", thread~)) catch { error => Err(error) }
+  let stopped = Ok(agent.run("do the work", thread~)) catch {
+    error => Err(error)
+  }
   match stopped {
     Ok(answer) => fail("the run finished without asking: " + answer)
     Err(@agent.Engine(@moonstate.GraphError::Interrupted(..))) => ()
-    Err(error) => fail("the run failed instead of stopping: " + @agent.describe(error))
+    Err(error) =>
+      fail("the run failed instead of stopping: " + @agent.describe(error))
   }
   let history = agent.history(thread)
   if history.length() == 0 {
@@ -136,7 +143,7 @@ async fn start_run(thread : String) -> Int32 raise {
 
 ///|
 /// Read the thread another process left behind, approve, and finish the run.
-async fn finish_run(thread : String) -> Unit raise {
+async fn finish_run(thread : String) -> Unit {
   let connection = connect()
   let saver = @sql.saver(connection)
   let provider = @fake.Fake::new([text_reply("done")])
@@ -165,7 +172,7 @@ async fn finish_run(thread : String) -> Unit raise {
     fail("the thread vanished after the resume")
   }
   let after = transcript(settled.unwrap().state)
-  let marked = after.any(line => line.starts_with("tool: marked"))
+  let marked = after.any(line => line.has_prefix("tool: marked"))
   if !marked {
     fail("the approved tool did not run: " + after.join(" | "))
   }
@@ -179,7 +186,9 @@ async fn finish_run(thread : String) -> Unit raise {
     after.length().to_string() +
     " messages",
   )
-  println("postgres-checkpoint: the approved tool ran and the thread is durable")
+  println(
+    "postgres-checkpoint: the approved tool ran and the thread is durable",
+  )
 }
 
 ///|
@@ -199,7 +208,9 @@ async fn main {
         0
       }
     }
-    println("postgres-checkpoint: wrote " + written.to_string() + " checkpoint(s)")
+    println(
+      "postgres-checkpoint: wrote " + written.to_string() + " checkpoint(s)",
+    )
   } else if mode == "resume" {
     finish_run(thread) catch {
       error => {

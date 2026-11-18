@@ -66,7 +66,7 @@ import {
   "moonbitstack/moonregex@0.2.0",
   "moonbitlang/async@0.22.5",
   "moonbitstack/moonast@0.3.1",
-  "moonbitlang/parser@0.4.8",
+  "moonbitlang/parser@0.4.9",
 }
 
 source = "src"

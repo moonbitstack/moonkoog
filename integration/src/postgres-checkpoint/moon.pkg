@@ -8,7 +8,6 @@ import {
   "moonbitstack/moonpostgres",
   "moonbitstack/moonmuse",
   "moonbitstack/moonmuse/fake",
-  "moonbitlang/core/json",
   "moonbitlang/async",
   "moonbitlang/core/env",
 }

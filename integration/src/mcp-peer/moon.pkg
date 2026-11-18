@@ -4,7 +4,6 @@ import {
   "moonbitstack/moonmcp/client",
   "moonbitstack/moonmuse",
   "moonbitstack/moonmuse/fake",
-  "moonbitlang/core/json",
   "moonbitlang/async",
   "moonbitlang/async/process",
   "moonbitlang/core/env",

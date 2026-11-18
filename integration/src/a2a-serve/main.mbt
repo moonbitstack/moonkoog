@@ -24,12 +24,9 @@ fn card(url : String) -> @moona2a.AgentCard {
     "1.0.0",
     url,
     [
-      @moona2a.AgentSkill::new(
-        "answer",
-        "Answer",
-        "Answer anything, briefly",
-        ["interop"],
-      ),
+      @moona2a.AgentSkill::new("answer", "Answer", "Answer anything, briefly", [
+        "interop",
+      ]),
     ],
   ).capable(@moona2a.AgentCapabilities::streaming_and_push())
 }
