@@ -7,3 +7,6 @@ _build/
 target/
 # Peer programs and their own module: test scaffolding, not part of the library.
 integration/
+
+# Examples are read in the repository and run in CI; they do not ship.
+src/examples/
