@@ -120,7 +120,7 @@ moonmcp's `#mcp.tool`, so a function described to a model and to an MCP client i
 same way. Wire it into the build once. In `moon.mod`:
 
 ```
-rule(name: "tool", command: "moonx moonbitstack/moonkoog/cmd/tool@0.7.0 -C \"$mod_dir\" \"$input\" -o \"$output\"")
+rule(name: "tool", command: "moonx moonbitstack/moonkoog/cmd/tool@0.7.1 -C \"$mod_dir\" \"$input\" -o \"$output\"")
 ```
 
 and in the `moon.pkg` of the package holding the functions:
